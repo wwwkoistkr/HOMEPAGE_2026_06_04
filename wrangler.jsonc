@@ -40,12 +40,23 @@
   //             간소화: "0 20 1 * *" = 매월 2일 05:00 KST (실용적 타협)
   //
   // Cloudflare Pages 무료 플랜: Cron Triggers 사용 가능, 월 100,000 호출 한도
+  //
+  // ⚠️ 주의: Cloudflare Pages는 wrangler.jsonc의 "triggers" 필드를 지원하지 않습니다.
+  //         (Pages projects does not support "triggers")
+  //         Pages용 Cron은 Cloudflare 대시보드 또는 별도 Worker로 설정해야 합니다.
+  //
+  // 대안:
+  //   1) Cloudflare Dashboard → Workers & Pages → koist-website → Settings → Functions → Cron Triggers
+  //   2) 또는 별도 Worker(scheduled handler 전용)를 만들어 본 Pages의 /api/admin/backups POST를 호출
+  //   3) 또는 외부 cron 서비스 (cron-job.org 등)로 webhook 호출
+  //
+  // scheduled handler 코드는 src/index.tsx 에 유지 (Pages가 Cron Triggers를 지원하면 자동 활성화)
   // ───────────────────────────────────────────────────────────────
-  "triggers": {
-    "crons": [
-      "0 18 * * *",
-      "0 19 * * 6",
-      "0 20 1 * *"
-    ]
-  }
+  // "triggers": {
+  //   "crons": [
+  //     "0 18 * * *",
+  //     "0 19 * * 6",
+  //     "0 20 1 * *"
+  //   ]
+  // }
 }
