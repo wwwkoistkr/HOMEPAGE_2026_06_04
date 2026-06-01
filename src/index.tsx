@@ -12,6 +12,7 @@ import { secureHeaders } from 'hono/secure-headers';
 
 import publicApi from './routes/api';
 import adminApi from './routes/admin';
+import { createBackup, type BackupType } from './utils/backup';
 
 import { layout } from './templates/layout';
 import { homePage } from './templates/home';
@@ -611,7 +612,7 @@ app.get('/admin/background-media', authMiddleware, csrfCookieMiddleware, async (
 });
 
 // Admin CRUD pages
-const adminPages = ['site-settings', 'departments', 'popups', 'notices', 'progress', 'downloads', 'faqs', 'inquiries', 'images', 'about', 'sim-cert-types', 'slider-settings'];
+const adminPages = ['site-settings', 'departments', 'popups', 'notices', 'progress', 'downloads', 'faqs', 'inquiries', 'images', 'about', 'sim-cert-types', 'slider-settings', 'backups'];
 for (const page of adminPages) {
   app.get(`/admin/${page}`, authMiddleware, csrfCookieMiddleware, async (c) => {
     const db = c.env.DB;
@@ -643,8 +644,64 @@ function getAdminPageTitle(page: string): string {
     about: '<i class="fas fa-info-circle text-indigo-500 mr-2"></i>소개 페이지 관리',
     'sim-cert-types': '<i class="fas fa-robot text-cyan-500 mr-2"></i>AI 시뮬레이터 인증유형 관리',
     'slider-settings': '<i class="fas fa-sliders text-amber-500 mr-2"></i>슬라이더 UI 설정 (색상·텍스트·반올림)',
+    'backups': '<i class="fas fa-database text-emerald-500 mr-2"></i>백업 관리 (자동·수동 백업 및 복원)',
   };
   return titles[page] || page;
 }
 
-export default app;
+// ═══════════════════════════════════════════════════════════════════
+// Cloudflare Worker Exports
+// ═══════════════════════════════════════════════════════════════════
+// - fetch: HTTP 요청 처리 (Hono 앱)
+// - scheduled: Cron Triggers 처리 (v39.28 Phase 2 자동 백업)
+// ═══════════════════════════════════════════════════════════════════
+
+export default {
+  fetch: app.fetch.bind(app),
+
+  /**
+   * Scheduled handler — Cron Triggers 진입점
+   *
+   * wrangler.jsonc 의 triggers.crons 와 매칭:
+   *   - "0 18 * * *"   → daily   (매일 03:00 KST)
+   *   - "0 19 * * 6"   → weekly  (매주 일요일 04:00 KST)
+   *   - "0 20 1 * *"   → monthly (매월 2일 05:00 KST)
+   *
+   * 각 트리거의 cron 문자열을 기준으로 백업 유형을 결정한다.
+   * waitUntil()로 백업 작업을 비동기 처리해 트리거가 timeout(보통 30초) 되지 않도록 보장.
+   */
+  async scheduled(event: ScheduledEvent, env: Bindings, ctx: ExecutionContext): Promise<void> {
+    const cron = event.cron;
+    let backupType: BackupType = 'daily';
+    if (cron === '0 18 * * *') backupType = 'daily';
+    else if (cron === '0 19 * * 6') backupType = 'weekly';
+    else if (cron === '0 20 1 * *') backupType = 'monthly';
+    else {
+      // 알 수 없는 cron은 daily로 fallback (안전 측면)
+      backupType = 'daily';
+    }
+
+    const triggeredBy = `cron-${backupType}`;
+    console.log(`[scheduled] Cron fired: ${cron} → backup type: ${backupType}`);
+
+    // waitUntil로 비동기 보장 — 백업이 완료될 때까지 워커가 종료되지 않음
+    ctx.waitUntil(
+      (async () => {
+        try {
+          const result = await createBackup(env, backupType, triggeredBy);
+          if (result.success) {
+            console.log(
+              `[scheduled] Backup OK: ${result.fileKey} ` +
+              `(${result.tableCount} tables, ${result.totalRows} rows, ` +
+              `${(result.fileSize / 1024).toFixed(1)} KB, ${result.durationMs}ms)`
+            );
+          } else {
+            console.error(`[scheduled] Backup FAILED: ${result.error}`);
+          }
+        } catch (err) {
+          console.error('[scheduled] Backup threw:', err);
+        }
+      })()
+    );
+  },
+};

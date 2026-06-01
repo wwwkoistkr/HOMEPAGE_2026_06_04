@@ -3,6 +3,16 @@ import { Hono } from 'hono';
 import type { Bindings, Variables, ImageRecord } from '../types';
 import { hashPassword, verifyPassword, generateSalt, createJWT } from '../utils/crypto';
 import { getJwtSecret } from '../middleware/auth';
+import {
+  createBackup,
+  listBackups,
+  getBackupFile,
+  verifyBackupIntegrity,
+  restoreFromBackup,
+  deleteBackup,
+  getBackupStats,
+  type BackupType,
+} from '../utils/backup';
 
 const admin = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -695,5 +705,306 @@ function isValidExternalUrl(url: string): boolean {
     return false;
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// Backup Management API (v39.28 Phase 2)
+// ═══════════════════════════════════════════════════════════════════
+// 모든 라우트는 상위 미들웨어(authMiddleware + csrfValidationMiddleware)로 보호됨
+// 감사 로그(admin_audit_logs)에 모든 작업 기록
+// ═══════════════════════════════════════════════════════════════════
+
+/** 감사 로그 헬퍼 (Phase 3에서 본격 활용, Phase 2에서도 백업 동작 기록) */
+async function logAudit(
+  c: any,
+  action: string,
+  resource: string,
+  details?: Record<string, any>,
+  status: 'success' | 'failed' | 'denied' = 'success'
+) {
+  try {
+    const adminUser = c.get('admin');
+    const username = adminUser?.username || 'unknown';
+    const ip = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || '';
+    const ua = c.req.header('User-Agent') || '';
+    await c.env.DB.prepare(
+      `INSERT INTO admin_audit_logs (admin_username, action, resource, ip_address, user_agent, details, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
+    )
+      .bind(username, action, resource, ip, ua, details ? JSON.stringify(details) : null, status)
+      .run();
+  } catch (e) {
+    console.error('[audit] log failed:', e);
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────
+// GET /api/admin/backups  → 백업 목록 + 통계
+// ──────────────────────────────────────────────────────────────────
+admin.get('/backups', async (c) => {
+  const type = c.req.query('type') as BackupType | undefined;
+  const limit = Math.min(parseInt(c.req.query('limit') || '100') || 100, 500);
+
+  try {
+    const [backups, stats] = await Promise.all([
+      listBackups(c.env, type, limit),
+      getBackupStats(c.env),
+    ]);
+    return c.json({ success: true, data: backups, stats });
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return c.json({ error: `백업 목록 조회 실패: ${msg}` }, 500);
+  }
+});
+
+// ──────────────────────────────────────────────────────────────────
+// POST /api/admin/backups  → 수동 백업 생성
+// ──────────────────────────────────────────────────────────────────
+admin.post('/backups', async (c) => {
+  const adminUser = c.get('admin');
+  const username = adminUser?.username || 'unknown';
+
+  let body: { type?: string; note?: string } = {};
+  try {
+    body = await c.req.json();
+  } catch {
+    // body 없으면 manual 기본
+  }
+  const type: BackupType = (body.type === 'daily' || body.type === 'weekly' || body.type === 'monthly')
+    ? (body.type as BackupType)
+    : 'manual';
+
+  try {
+    const result = await createBackup(c.env, type, username);
+    if (result.success) {
+      await logAudit(c, 'backup', `backup:${result.fileKey}`, {
+        type,
+        size: result.fileSize,
+        tables: result.tableCount,
+        rows: result.totalRows,
+        duration_ms: result.durationMs,
+      });
+      return c.json({
+        success: true,
+        message: '백업이 성공적으로 생성되었습니다.',
+        backup: result,
+      });
+    } else {
+      await logAudit(c, 'backup', `backup:failed`, { error: result.error }, 'failed');
+      return c.json({ error: `백업 실패: ${result.error}` }, 500);
+    }
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    await logAudit(c, 'backup', `backup:exception`, { error: msg }, 'failed');
+    return c.json({ error: msg }, 500);
+  }
+});
+
+// ──────────────────────────────────────────────────────────────────
+// GET /api/admin/backups/:id/download  → 백업 파일 다운로드
+// ──────────────────────────────────────────────────────────────────
+admin.get('/backups/:id/download', async (c) => {
+  const id = parseInt(c.req.param('id'));
+  if (!Number.isFinite(id) || id <= 0) {
+    return c.json({ error: '잘못된 백업 ID' }, 400);
+  }
+
+  try {
+    const row = await c.env.DB.prepare(
+      'SELECT file_key, file_size, file_sha256, backup_type, created_at FROM backup_history WHERE id = ?'
+    )
+      .bind(id)
+      .first<{ file_key: string; file_size: number; file_sha256: string; backup_type: string; created_at: string }>();
+
+    if (!row || !row.file_key) {
+      return c.json({ error: '백업 기록을 찾을 수 없습니다.' }, 404);
+    }
+
+    const obj = await getBackupFile(c.env, row.file_key);
+    if (!obj) {
+      return c.json({ error: '백업 파일을 R2에서 찾을 수 없습니다.' }, 404);
+    }
+
+    await logAudit(c, 'export', `backup:${row.file_key}`, {
+      id,
+      type: row.backup_type,
+      size: row.file_size,
+    });
+
+    // 파일명: koist-backup-{type}-{date}.json.gz
+    const safeName = `koist-backup-${row.backup_type}-${row.created_at.slice(0, 10)}.json.gz`;
+    const headers = new Headers();
+    headers.set('Content-Type', 'application/gzip');
+    headers.set('Content-Length', String(row.file_size));
+    headers.set('Content-Disposition', `attachment; filename="${safeName}"`);
+    headers.set('Cache-Control', 'no-store');
+    headers.set('X-Content-Type-Options', 'nosniff');
+    headers.set('X-Backup-SHA256', row.file_sha256 || '');
+    return new Response(obj.body, { headers });
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return c.json({ error: msg }, 500);
+  }
+});
+
+// ──────────────────────────────────────────────────────────────────
+// GET /api/admin/backups/:id/verify  → 무결성 검증
+// ──────────────────────────────────────────────────────────────────
+admin.get('/backups/:id/verify', async (c) => {
+  const id = parseInt(c.req.param('id'));
+  if (!Number.isFinite(id) || id <= 0) {
+    return c.json({ error: '잘못된 백업 ID' }, 400);
+  }
+
+  try {
+    const row = await c.env.DB.prepare(
+      'SELECT file_key, file_sha256 FROM backup_history WHERE id = ?'
+    )
+      .bind(id)
+      .first<{ file_key: string; file_sha256: string }>();
+
+    if (!row) return c.json({ error: '백업 기록을 찾을 수 없습니다.' }, 404);
+
+    const result = await verifyBackupIntegrity(c.env, row.file_key, row.file_sha256);
+    await logAudit(c, 'view', `backup:verify:${row.file_key}`, {
+      valid: result.valid,
+    });
+    return c.json({
+      success: true,
+      valid: result.valid,
+      expected_hash: row.file_sha256,
+      actual_hash: result.actualHash,
+    });
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return c.json({ error: msg }, 500);
+  }
+});
+
+// ──────────────────────────────────────────────────────────────────
+// POST /api/admin/backups/:id/restore  → 백업으로 복원 (위험)
+// ──────────────────────────────────────────────────────────────────
+// 보호장치 (2단계 확인):
+//   1) 요청 본문에 confirm: "RESTORE" 명시 필수
+//   2) 복원 전 자동 pre-restore 백업 생성
+//   3) backup_history / admin_audit_logs 테이블은 복원 대상에서 제외
+// ──────────────────────────────────────────────────────────────────
+admin.post('/backups/:id/restore', async (c) => {
+  const id = parseInt(c.req.param('id'));
+  if (!Number.isFinite(id) || id <= 0) {
+    return c.json({ error: '잘못된 백업 ID' }, 400);
+  }
+
+  let body: { confirm?: string } = {};
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: '잘못된 요청 본문' }, 400);
+  }
+
+  if (body.confirm !== 'RESTORE') {
+    await logAudit(c, 'restore', `backup:${id}`, { reason: 'missing confirmation' }, 'denied');
+    return c.json(
+      { error: '복원을 진행하려면 confirm 필드에 "RESTORE" 값을 정확히 입력해야 합니다.' },
+      400
+    );
+  }
+
+  const adminUser = c.get('admin');
+  const username = adminUser?.username || 'unknown';
+
+  try {
+    const row = await c.env.DB.prepare(
+      'SELECT file_key FROM backup_history WHERE id = ?'
+    )
+      .bind(id)
+      .first<{ file_key: string }>();
+
+    if (!row || !row.file_key) {
+      return c.json({ error: '백업 기록을 찾을 수 없습니다.' }, 404);
+    }
+
+    const result = await restoreFromBackup(c.env, row.file_key, username);
+
+    if (result.success) {
+      await logAudit(c, 'restore', `backup:${row.file_key}`, {
+        pre_restore_backup: result.preRestoreBackupKey,
+        restored_tables: result.restoredTables,
+        restored_rows: result.restoredRows,
+        duration_ms: result.durationMs,
+      });
+      return c.json({
+        success: true,
+        message: `복원 성공: ${result.restoredTables}개 테이블, ${result.restoredRows}개 행`,
+        result,
+      });
+    } else {
+      await logAudit(c, 'restore', `backup:${row.file_key}`, { error: result.error }, 'failed');
+      return c.json({ error: `복원 실패: ${result.error}`, result }, 500);
+    }
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    await logAudit(c, 'restore', `backup:exception`, { error: msg }, 'failed');
+    return c.json({ error: msg }, 500);
+  }
+});
+
+// ──────────────────────────────────────────────────────────────────
+// DELETE /api/admin/backups/:id  → 백업 삭제 (R2 + DB)
+// ──────────────────────────────────────────────────────────────────
+admin.delete('/backups/:id', async (c) => {
+  const id = parseInt(c.req.param('id'));
+  if (!Number.isFinite(id) || id <= 0) {
+    return c.json({ error: '잘못된 백업 ID' }, 400);
+  }
+
+  try {
+    const row = await c.env.DB.prepare(
+      'SELECT file_key FROM backup_history WHERE id = ?'
+    )
+      .bind(id)
+      .first<{ file_key: string }>();
+
+    const result = await deleteBackup(c.env, id);
+    if (result.success) {
+      await logAudit(c, 'delete', `backup:${row?.file_key || id}`, { id });
+      return c.json({ success: true });
+    } else {
+      return c.json({ error: result.error || '삭제 실패' }, 500);
+    }
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return c.json({ error: msg }, 500);
+  }
+});
+
+// ──────────────────────────────────────────────────────────────────
+// GET /api/admin/audit-logs  → 감사 로그 조회 (Phase 3 인프라)
+// ──────────────────────────────────────────────────────────────────
+admin.get('/audit-logs', async (c) => {
+  const limit = Math.min(parseInt(c.req.query('limit') || '100') || 100, 500);
+  const action = c.req.query('action') || '';
+  const username = c.req.query('username') || '';
+
+  let query = 'SELECT * FROM admin_audit_logs WHERE 1=1';
+  const binds: any[] = [];
+  if (action) {
+    query += ' AND action = ?';
+    binds.push(action);
+  }
+  if (username) {
+    query += ' AND admin_username = ?';
+    binds.push(username);
+  }
+  query += ' ORDER BY created_at DESC LIMIT ?';
+  binds.push(limit);
+
+  try {
+    const result = await c.env.DB.prepare(query).bind(...binds).all();
+    return c.json({ success: true, data: result.results });
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return c.json({ error: msg }, 500);
+  }
+});
 
 export default admin;

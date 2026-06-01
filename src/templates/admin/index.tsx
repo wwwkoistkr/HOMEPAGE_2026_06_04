@@ -197,6 +197,7 @@ export function adminDashboardPage(content: string, activeMenu = 'dashboard', lo
     { id: 'about', icon: 'fa-info-circle', label: '소개 페이지', href: '/admin/about' },
     { id: 'sim-cert-types', icon: 'fa-robot', label: 'AI 시뮬레이터', href: '/admin/sim-cert-types' },
     { id: 'slider-settings', icon: 'fa-sliders', label: '슬라이더 UI 설정', href: '/admin/slider-settings' },
+    { id: 'backups', icon: 'fa-database', label: '백업 관리', href: '/admin/backups' },
     { id: 'account', icon: 'fa-user-shield', label: '계정 관리', href: '/admin/change-password' },
   ];
 
