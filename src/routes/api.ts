@@ -101,17 +101,39 @@ api.get('/downloads/:id/file', async (c) => {
 });
 
 // POST /api/inquiries (rate limited: 3 requests per hour)
+// v39.27: 「개인정보 보호법」제15조 — 동의 검증 + 동의 시각 기록
 api.post('/inquiries', inquiryRateLimiter, async (c) => {
   const db = c.env.DB;
   try {
     const body = await c.req.json();
     const { name, email, phone, company, subject, message } = body;
+
+    // 필수 항목 검증
     if (!name || !subject || !message) {
       return c.json({ error: '이름, 제목, 내용은 필수입니다.' }, 400);
     }
+
+    // ═══ 개인정보 수집·이용 동의 검증 (v39.27) ═══
+    // 「개인정보 보호법」제15조에 따라 수집 전 명시적 동의 필수
+    const consentPersonalInfo = body.consent_personal_info === true || body.consent_personal_info === 1;
+    if (!consentPersonalInfo) {
+      return c.json({ error: '개인정보 수집·이용 동의가 필요합니다.' }, 400);
+    }
+
+    // 동의 시각: 클라이언트가 보낸 ISO 시각 사용, 없거나 잘못된 형식이면 서버 현재 시각
+    let consentAt: string;
+    const clientConsentAt = typeof body.consent_at === 'string' ? body.consent_at : '';
+    if (clientConsentAt && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(clientConsentAt)) {
+      consentAt = clientConsentAt;
+    } else {
+      consentAt = new Date().toISOString();
+    }
+
+    // DB 저장 (동의 정보 함께 기록)
     await db.prepare(
-      'INSERT INTO inquiries (name, email, phone, company, subject, message) VALUES (?, ?, ?, ?, ?, ?)'
-    ).bind(name, email || '', phone || '', company || '', subject, message).run();
+      'INSERT INTO inquiries (name, email, phone, company, subject, message, consent_personal_info, consent_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+    ).bind(name, email || '', phone || '', company || '', subject, message, 1, consentAt).run();
+
     return c.json({ success: true, message: '문의가 접수되었습니다.' });
   } catch (e) {
     return c.json({ error: '문의 접수에 실패했습니다.' }, 500);

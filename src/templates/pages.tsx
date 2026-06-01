@@ -330,10 +330,75 @@ export function inquiryPage(settings: SettingsMap) {
           <label class="block font-semibold text-slate-700 f-text-xs" style="margin-bottom:var(--space-xs)">제목 <span class="text-red-500">*</span></label>
           <input type="text" name="subject" required class="input-premium">
         </div>
-        <div style="margin-bottom:var(--space-lg)">
+        <div style="margin-bottom:var(--space-md)">
           <label class="block font-semibold text-slate-700 f-text-xs" style="margin-bottom:var(--space-xs)">문의 내용 <span class="text-red-500">*</span></label>
           <textarea name="message" rows="5" required class="input-premium" style="resize:vertical;"></textarea>
         </div>
+
+        <!-- ═══ 개인정보 수집·이용 동의 (v39.27) ═══ -->
+        <!-- 「개인정보 보호법」제15조 준수 — 정보주체의 동의 필수 -->
+        <div style="margin-bottom:var(--space-lg); padding:var(--space-md);
+                    background: rgba(59,130,246,0.04);
+                    border: 1px solid rgba(59,130,246,0.18);
+                    border-radius: var(--radius-md);">
+          <label class="flex items-start cursor-pointer" style="gap:var(--space-sm)">
+            <input type="checkbox" name="consent_personal_info" id="consentPI" required
+                   class="mt-1 shrink-0 cursor-pointer"
+                   style="width:18px; height:18px; accent-color:#2563EB;">
+            <span class="f-text-sm text-slate-700" style="line-height:1.6;">
+              <strong class="text-red-500">(필수)</strong>
+              <strong>개인정보 수집·이용에 동의합니다.</strong>
+              <button type="button" id="togglePrivacyDetail"
+                      class="text-blue-600 hover:underline ml-2 f-text-xs"
+                      style="background:none; border:none; padding:0; cursor:pointer;">
+                [전문 보기 ▼]
+              </button>
+              <a href="/privacy" target="_blank" rel="noopener"
+                 class="text-blue-600 hover:underline ml-2 f-text-xs">
+                <i class="fas fa-external-link-alt"></i> 처리방침 전문
+              </a>
+            </span>
+          </label>
+
+          <!-- 동의 전문 (기본 숨김, 토글로 펼침) -->
+          <div id="privacyDetail" class="hidden"
+               style="margin-top:var(--space-md); padding:var(--space-md);
+                      background: white; border-radius: var(--radius-sm);
+                      border: 1px solid rgba(0,0,0,0.08);">
+            <table class="w-full f-text-xs text-slate-600" style="border-collapse: collapse;">
+              <thead>
+                <tr style="background:#F8FAFC;">
+                  <th class="text-left p-2 border-b" style="width:35%;">항목</th>
+                  <th class="text-left p-2 border-b">내용</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="p-2 border-b font-semibold">수집·이용 목적</td>
+                  <td class="p-2 border-b">상담 문의 응대 및 회신</td>
+                </tr>
+                <tr>
+                  <td class="p-2 border-b font-semibold">수집 항목</td>
+                  <td class="p-2 border-b">이름, 회사명, 이메일, 연락처, 제목, 문의내용</td>
+                </tr>
+                <tr>
+                  <td class="p-2 border-b font-semibold">보유·이용 기간</td>
+                  <td class="p-2 border-b">문의 처리 완료 후 <strong>3년</strong><br><span class="text-slate-400">(전자상거래 등에서의 소비자보호에 관한 법률)</span></td>
+                </tr>
+                <tr>
+                  <td class="p-2 font-semibold">동의 거부 권리</td>
+                  <td class="p-2">동의를 거부할 권리가 있으며, 거부 시 상담 접수가 제한될 수 있습니다.</td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="f-text-xs text-slate-500 mt-2">
+              <i class="fas fa-info-circle mr-1"></i>
+              자세한 내용은 <a href="/privacy" target="_blank" rel="noopener" class="text-blue-600 hover:underline">개인정보처리방침</a>을 참고하세요.
+            </p>
+          </div>
+        </div>
+        <!-- ═══ 개인정보 수집·이용 동의 끝 ═══ -->
+
         <button type="submit" id="inquiryBtn" class="w-full btn-primary justify-center f-text-sm ripple-btn" style="padding:var(--space-sm) 0; border-radius: var(--radius-md);">
           <i class="fas fa-paper-plane f-text-xs"></i> 문의하기
         </button>
@@ -342,17 +407,56 @@ export function inquiryPage(settings: SettingsMap) {
     </div>
   </section>
   <script>
+    /* ═══ 개인정보 동의 전문 토글 (v39.27) ═══ */
+    (function() {
+      var btnToggle = document.getElementById('togglePrivacyDetail');
+      if (btnToggle) {
+        btnToggle.addEventListener('click', function() {
+          var detail = document.getElementById('privacyDetail');
+          var hidden = detail.classList.contains('hidden');
+          if (hidden) {
+            detail.classList.remove('hidden');
+            this.textContent = '[전문 닫기 ▲]';
+          } else {
+            detail.classList.add('hidden');
+            this.textContent = '[전문 보기 ▼]';
+          }
+        });
+      }
+    })();
+
+    /* ═══ 폼 제출 핸들러 (v39.27 — 동의 검증 포함) ═══ */
     document.getElementById('inquiryForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       var btn = document.getElementById('inquiryBtn');
       var msg = document.getElementById('inquiryMsg');
       var form = e.target;
+
+      /* ─── 클라이언트 측 동의 검증 ─── */
+      var consentBox = document.getElementById('consentPI');
+      if (!consentBox || !consentBox.checked) {
+        msg.className = 'rounded-lg f-text-sm bg-red-50 text-red-700 border border-red-200';
+        msg.style.cssText = 'margin-top:var(--space-md); padding:var(--space-sm) var(--space-md)';
+        msg.innerHTML = '<i class="fas fa-exclamation-circle mr-1"></i> 개인정보 수집·이용에 동의해주세요.';
+        msg.classList.remove('hidden');
+        if (consentBox) consentBox.focus();
+        return;
+      }
+
       btn.disabled = true;
       btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> 전송 중...';
       try {
         var body = {};
         new FormData(form).forEach(function(v, k) { body[k] = v; });
-        var res = await fetch('/api/inquiries', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+        /* 체크박스는 FormData에 'on'으로 들어오므로 boolean으로 명시 + 동의 시각 기록 */
+        body.consent_personal_info = true;
+        body.consent_at = new Date().toISOString();
+
+        var res = await fetch('/api/inquiries', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify(body)
+        });
         var data = await res.json();
         if (data.success) {
           msg.className = 'rounded-lg f-text-sm bg-green-50 text-green-700 border border-green-200';
