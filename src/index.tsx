@@ -40,6 +40,20 @@ async function isAuthenticatedAdmin(c: any): Promise<boolean> {
   }
 }
 
+// ===== Host-based Redirect (v39.26) =====
+// www.koist.kr → koist.ai.kr 로 영구 리다이렉트 (SEO 정규화)
+// 옛 도메인(koist.kr)에서 새 도메인(koist.ai.kr)으로 트래픽을 이전한다.
+// koist-website.pages.dev 등 기타 호스트는 그대로 통과.
+app.use('*', async (c, next) => {
+  const host = (c.req.header('Host') || '').toLowerCase();
+  if (host === 'www.koist.kr' || host === 'koist.kr') {
+    const url = new URL(c.req.url);
+    const target = `https://koist.ai.kr${url.pathname}${url.search}`;
+    return c.redirect(target, 301);
+  }
+  await next();
+});
+
 // ===== Security Headers =====
 app.use('*', secureHeaders({
   contentSecurityPolicy: {
