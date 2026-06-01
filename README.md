@@ -1,10 +1,11 @@
-# KOIST Website v39.30
+# KOIST Website v39.31
 
 **(주)한국정보보안기술원** 공식 웹사이트 — **koist.kr 원본 디자인 완전 복제** (Scoped Legacy Theme) + **개인정보보호법 완전 준수 4-Phase 업그레이드**
 
 ## URLs
 - **Production**: https://koist-website.pages.dev (메인)
-- **v39.30 (Latest)**: 엑셀 스타일 문의 관리 + 마스킹 + Excel/CSV 내보내기 + SheetJS
+- **v39.31 (Latest)**: 외부 cron 백업 자동화 (`/api/cron/backup` 토큰 인증 엔드포인트)
+- **v39.30**: 엑셀 스타일 문의 관리 + 마스킹 + Excel/CSV 내보내기 + SheetJS
 - **v39.29**: 개인정보처리방침(/privacy) + Soft Delete + 감사 로그
 - **v39.28**: 자동 백업 시스템 (Cron + R2 + 관리자 UI)
 - **v39.27**: 개인정보 수집·이용 동의 체크박스 + API 검증
@@ -19,9 +20,74 @@
 - **관리자**: /admin
 - **사업분야 관리**: /admin/departments (v39.7에서 **원본 디자인 토글** + 영문 서브타이틀 + WYSIWYG)
 - **슬라이더 UI 설정**: /admin/slider-settings (v39.4)
-- **백업 관리**: /admin/backups (v39.28 — 자동/수동 백업, 복원, 검증)
+- **백업 관리**: /admin/backups (v39.28 — 수동 백업, 복원, 검증)
+- **외부 Cron 엔드포인트**: `/api/cron/backup?type=daily|weekly|monthly` (v39.31 — 토큰 인증, cron-job.org 연동)
+- **Cron Ping**: /api/cron/ping (인증 불필요, 연결 확인용)
 - **상담문의 관리**: /admin/inquiries (v39.30 — 엑셀 스타일, 마스킹, 내보내기)
 - **개인정보처리방침**: /privacy (v39.29)
+
+---
+
+## 🕒 v39.31 — 외부 Cron 백업 자동화 엔드포인트 (2026-06-01)
+
+### 배경
+Cloudflare **Pages**는 `wrangler.jsonc`의 `triggers.crons`를 지원하지 않는다 (Workers 전용).
+따라서 외부 cron 서비스(예: **cron-job.org**)에서 호출 가능한 토큰 인증 엔드포인트를 추가하여 자동 백업을 구현.
+
+### 신규 엔드포인트
+- **`GET  /api/cron/ping`** — 연결 확인용 (인증 불필요)
+- **`POST/GET /api/cron/backup?type=daily|weekly|monthly`** — 토큰 인증 백업 트리거
+  - 인증: `X-Cron-Token: <CRON_SECRET>` 헤더 **또는** `?token=...` 쿼리
+  - 둘 다 지원하므로 어떤 cron 서비스든 호환
+
+### 보안 모델
+| 항목 | 구현 |
+|------|------|
+| 토큰 강도 | 256-bit (32-byte hex) 랜덤 |
+| 비교 방식 | **상수시간 비교** (타이밍 공격 방지) |
+| 시크릿 저장 | Cloudflare Pages Secret (`CRON_SECRET`) — 빌드/배포 환경변수에 절대 노출 안 됨 |
+| 타입 화이트리스트 | `daily`, `weekly`, `monthly`만 허용 (manual/pre-restore 차단) |
+| Rate Limit | **분당 2회** (KV 기반) — 무차별 대입 방어 |
+| 감사 로그 | 성공·실패·denied 모두 `admin_audit_logs`에 IP/UA와 함께 기록 (`admin_username='cron-system'`) |
+| 응답 본문 | 인증 실패 시 `{"error":"unauthorized"}`만 — 정보 노출 차단 |
+
+### cron-job.org 등록 가이드
+1. https://cron-job.org 가입/로그인 → **CREATE CRONJOB**
+2. **3개 작업** 등록 (KST 기준):
+
+| Title | URL | Schedule (UTC) | KST 환산 |
+|-------|-----|-----------------|----------|
+| KOIST Daily Backup | `https://koist-website.pages.dev/api/cron/backup?type=daily` | `0 18 * * *` | 매일 03:00 |
+| KOIST Weekly Backup | `https://koist-website.pages.dev/api/cron/backup?type=weekly` | `0 19 * * 6` | 일요일 04:00 |
+| KOIST Monthly Backup | `https://koist-website.pages.dev/api/cron/backup?type=monthly` | `0 20 1 * *` | 매월 1일 05:00 |
+
+3. 각 작업 **Advanced** 탭:
+   - Request method: **POST** (GET도 동작)
+   - **Headers** 섹션에 추가:
+     - Name: `X-Cron-Token`
+     - Value: `<CRON_SECRET 토큰 값>` (별도 안전한 채널로 전달받은 값)
+   - **Notifications** 탭에서 실패 시 이메일 알림 ON 권장
+4. **Save** 후 "Test run" 버튼으로 즉시 한 번 호출하여 200 OK 확인
+
+### 운영 확인 방법
+- 관리자 페이지 `/admin/backups`에서 `triggered_by='cron-system'` 백업이 일/주/월 단위로 누적되는지 확인
+- 실패 시 `admin_audit_logs`에서 `admin_username='cron-system' AND status='failed'` 조회
+
+### 검증 결과 (2026-06-01)
+| 시나리오 | 결과 |
+|---------|------|
+| 토큰 없이 호출 | ✅ 401 unauthorized |
+| 잘못된 토큰 | ✅ 401 unauthorized |
+| 잘못된 type | ✅ 400 invalid type |
+| Rate limit 초과 (분당 3회+) | ✅ 429 |
+| 정상 토큰 + daily | ✅ 200 + 백업 생성 (1.86초, 96.4KB, 15테이블/509행) |
+| Audit log 기록 | ✅ success/denied 모두 IP·UA·resource·details 기록 |
+
+### 파일 변경
+- **신규**: `src/routes/cron.ts` (200줄)
+- **수정**: `src/index.tsx` (cron 라우트 마운트, CSRF 적용 전 위치)
+- **수정**: `src/types.ts` (Bindings에 `CRON_SECRET?` 추가)
+- **수정**: `.dev.vars` (로컬 테스트용, gitignore됨)
 
 ---
 

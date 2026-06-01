@@ -12,6 +12,7 @@ import { secureHeaders } from 'hono/secure-headers';
 
 import publicApi from './routes/api';
 import adminApi from './routes/admin';
+import cronApi from './routes/cron';
 import { createBackup, type BackupType } from './utils/backup';
 
 import { layout } from './templates/layout';
@@ -93,6 +94,11 @@ app.use('*', async (c, next) => {
 
 // ===== Public API Routes =====
 app.route('/api', publicApi);
+
+// ===== Cron API Routes (v39.31) =====
+// 외부 cron 서비스(cron-job.org 등)에서 호출하는 토큰 인증 엔드포인트.
+// 인증/CSRF 미들웨어를 거치지 않으므로 admin 라우트보다 먼저 마운트한다.
+app.route('/api/cron', cronApi);
 
 // ===== Admin API Routes =====
 // Login doesn't need auth middleware but needs rate limiting

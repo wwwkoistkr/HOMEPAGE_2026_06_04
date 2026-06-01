@@ -6,6 +6,7 @@ export type Bindings = {
   JWT_SECRET: string;
   RATE_LIMIT_KV?: KVNamespace;
   IMAGE_MAX_BYTES?: string;
+  CRON_SECRET?: string;  // v39.31: 외부 cron 서비스 토큰 인증용
 };
 
 export type Variables = {
