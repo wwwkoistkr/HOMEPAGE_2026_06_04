@@ -288,6 +288,18 @@ export function adminDashboardPage(content: string, activeMenu = 'dashboard', lo
         <button id="mobileSidebarBtn" class="lg:hidden p-2 text-gray-600"><i class="fas fa-bars"></i></button>
         <div></div>
         <div class="flex items-center gap-3">
+          <!-- v39.32: 응급 백업 버튼 (모든 admin 페이지에서 노출) -->
+          <button id="emergencyBackupBtn" type="button"
+            class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg shadow-sm transition"
+            title="현재 데이터베이스를 즉시 백업 (1분 1회 제한)">
+            <i class="fas fa-shield-halved"></i>
+            <span>응급 백업</span>
+          </button>
+          <button id="emergencyBackupBtnMobile" type="button"
+            class="sm:hidden p-2 text-red-500 hover:bg-red-50 rounded-lg"
+            title="응급 백업">
+            <i class="fas fa-shield-halved"></i>
+          </button>
           <span class="text-sm text-gray-500"><i class="fas fa-user-circle mr-1"></i> 관리자</span>
         </div>
       </header>
@@ -348,6 +360,106 @@ export function adminDashboardPage(content: string, activeMenu = 'dashboard', lo
       document.body.style.overflow = '';
     }
     document.getElementById('mobileSidebarBtn')?.addEventListener('click', openSidebar);
+
+    // ─── v39.32: 응급 백업 버튼 (전역) ───────────────────────────
+    // 부담 없이 자주 누르도록 설계. 단순 토스트로 결과 알림.
+    (function() {
+      'use strict';
+
+      function getCsrf() {
+        var m = document.cookie.match(/(?:^|;\\s*)koist_csrf=([^;]*)/);
+        return m ? decodeURIComponent(m[1]) : '';
+      }
+
+      function showToast(msg, type) {
+        type = type || 'success';
+        var bg = type === 'success' ? 'bg-emerald-500' : (type === 'error' ? 'bg-red-500' : 'bg-blue-500');
+        var icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-times-circle' : 'fa-info-circle');
+        var toast = document.createElement('div');
+        toast.className = 'fixed top-20 right-6 z-[60] ' + bg + ' text-white px-4 py-3 rounded-lg shadow-2xl flex items-center gap-2 text-sm font-medium min-w-[280px] max-w-md animate-fade-in';
+        toast.innerHTML = '<i class="fas ' + icon + '"></i><span>' + msg + '</span>';
+        document.body.appendChild(toast);
+        setTimeout(function() {
+          toast.style.transition = 'opacity 0.5s, transform 0.5s';
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(-10px)';
+          setTimeout(function() { toast.remove(); }, 500);
+        }, type === 'error' ? 5000 : 3500);
+      }
+
+      function formatBytes(b) {
+        if (!b) return '0 B';
+        if (b < 1024) return b + ' B';
+        if (b < 1024*1024) return (b/1024).toFixed(1) + ' KB';
+        return (b/1024/1024).toFixed(2) + ' MB';
+      }
+
+      async function runEmergencyBackup(btn) {
+        var origHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span class="hidden sm:inline ml-1">백업 중...</span>';
+        try {
+          var res = await fetch('/api/admin/backups/emergency', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': getCsrf(),
+            },
+            credentials: 'same-origin',
+          });
+          var data = await res.json().catch(function() { return {}; });
+          if (res.ok && data.success) {
+            var b = data.backup || {};
+            showToast(
+              '✅ 응급 백업 완료 · ' +
+              (b.tableCount || 0) + '개 테이블 · ' +
+              (b.totalRows || 0).toLocaleString() + '행 · ' +
+              formatBytes(b.fileSize) + ' · ' +
+              ((b.durationMs || 0) / 1000).toFixed(1) + '초',
+              'success'
+            );
+            // 현재 백업 페이지에 있다면 목록 새로고침
+            if (typeof window.reloadBackupsList === 'function') {
+              window.reloadBackupsList();
+            }
+          } else if (res.status === 429) {
+            showToast('⏱️ ' + (data.error || '1분에 1회만 가능합니다'), 'info');
+          } else {
+            showToast('❌ ' + (data.error || '응급 백업 실패'), 'error');
+          }
+        } catch (e) {
+          showToast('❌ 네트워크 오류: ' + (e && e.message || e), 'error');
+        } finally {
+          setTimeout(function() {
+            btn.disabled = false;
+            btn.innerHTML = origHtml;
+          }, 1500);
+        }
+      }
+
+      function attach(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('click', function() {
+          // 한 번 더 확인 (실수 클릭 방지) — 너무 무겁지 않게 confirm 1회만
+          if (!confirm('지금 즉시 데이터베이스 백업을 생성하시겠습니까?\\n\\n이 작업은 안전합니다(읽기 전용). 1~3초 소요됩니다.')) return;
+          runEmergencyBackup(el.id === 'emergencyBackupBtnMobile'
+            ? document.getElementById('emergencyBackupBtn') || el
+            : el);
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        attach('emergencyBackupBtn');
+        attach('emergencyBackupBtnMobile');
+      });
+
+      // 만약 DOMContentLoaded가 이미 발생했다면 즉시 부착
+      if (document.readyState === 'interactive' || document.readyState === 'complete') {
+        attach('emergencyBackupBtn');
+        attach('emergencyBackupBtnMobile');
+      }
+    })();
   </script>
 </body>
 </html>`;

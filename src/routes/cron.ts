@@ -32,7 +32,7 @@
  */
 import { Hono } from 'hono';
 import type { Bindings, Variables } from '../types';
-import { createBackup, type BackupType } from '../utils/backup';
+import { createBackup, applyAllRetentionPolicies, type BackupType } from '../utils/backup';
 import { rateLimiter } from '../middleware/rate-limit';
 
 const cron = new Hono<{ Bindings: Bindings; Variables: Variables }>();
@@ -180,5 +180,67 @@ const backupHandler = async (c: any) => {
 
 cron.post('/backup', cronRateLimiter, backupHandler);
 cron.get('/backup', cronRateLimiter, backupHandler);
+
+/**
+ * v39.32: POST/GET /api/cron/cleanup
+ * GFS 보존 정책 일괄 적용 — daily/weekly/monthly/pre-restore 초과분 삭제.
+ * Manual은 보호 (자동 삭제 금지).
+ *
+ * 권장 cron: 매주 일요일 새벽 5시 (주간 백업 4시 직후)
+ * cron-job.org Crontab: 0 5 * * 0
+ *
+ * 응답:
+ *   200 { ok: true, totalDeleted, byType: { daily: {deleted, kept}, ... }, durationMs }
+ *   401 { error: 'unauthorized' }
+ *   503 { error: 'cron not configured' }
+ */
+const cleanupHandler = async (c: any) => {
+  // 1) CRON_SECRET 검증 (backup endpoint와 동일 로직)
+  const secret = c.env.CRON_SECRET;
+  if (!secret || secret.length < 16) {
+    await logCronAudit(c, 'cleanup', 'cron:cleanup:misconfig', { reason: 'CRON_SECRET missing or too short' }, 'failed');
+    return c.json({ error: 'cron not configured' }, 503);
+  }
+
+  const providedToken =
+    c.req.query('token') ||
+    c.req.header('X-Cron-Token') ||
+    c.req.header('Authorization')?.replace(/^Bearer\s+/i, '') ||
+    '';
+
+  if (!providedToken || !timingSafeEqual(providedToken, secret)) {
+    await logCronAudit(c, 'cleanup', 'cron:cleanup:unauthorized', { hasToken: !!providedToken }, 'denied');
+    return c.json({ error: 'unauthorized' }, 401);
+  }
+
+  // 2) 전체 보존 정책 적용
+  try {
+    const result = await applyAllRetentionPolicies(c.env);
+    if (result.success) {
+      await logCronAudit(c, 'cleanup', 'cron:cleanup:success', {
+        totalDeleted: result.totalDeleted,
+        byType: result.byType,
+        durationMs: result.durationMs,
+        trigger: 'cron',
+      });
+      return c.json({
+        ok: true,
+        totalDeleted: result.totalDeleted,
+        byType: result.byType,
+        durationMs: result.durationMs,
+      });
+    } else {
+      await logCronAudit(c, 'cleanup', 'cron:cleanup:failed', { error: result.error }, 'failed');
+      return c.json({ ok: false, error: result.error }, 500);
+    }
+  } catch (e: any) {
+    const msg = e?.message || String(e);
+    await logCronAudit(c, 'cleanup', 'cron:cleanup:exception', { error: msg }, 'failed');
+    return c.json({ ok: false, error: 'cleanup exception' }, 500);
+  }
+};
+
+cron.post('/cleanup', cronRateLimiter, cleanupHandler);
+cron.get('/cleanup', cronRateLimiter, cleanupHandler);
 
 export default cron;

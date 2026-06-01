@@ -11,6 +11,10 @@ import {
   restoreFromBackup,
   deleteBackup,
   getBackupStats,
+  applyAllRetentionPolicies,
+  isWithinEmergencyWindow,
+  RETENTION_POLICY,
+  EMERGENCY_RESTORE_WINDOW_MS,
   type BackupType,
 } from '../utils/backup';
 import { logAudit } from '../utils/audit';
@@ -1100,12 +1104,22 @@ admin.get('/backups/:id/verify', async (c) => {
 });
 
 // ──────────────────────────────────────────────────────────────────
-// POST /api/admin/backups/:id/restore  → 백업으로 복원 (위험)
+// POST /api/admin/backups/:id/restore  → 백업으로 복원 (위험)  [v39.32 강화]
 // ──────────────────────────────────────────────────────────────────
-// 보호장치 (2단계 확인):
-//   1) 요청 본문에 confirm: "RESTORE" 명시 필수
-//   2) 복원 전 자동 pre-restore 백업 생성
-//   3) backup_history / admin_audit_logs 테이블은 복원 대상에서 제외
+// 비대칭 보호 모델 (백업=빠름 / 복원=신중):
+//
+//   [표준 복원] 1시간 이상 지난 백업 → 3단계 안전장치 모두 필수
+//     1) confirm 필드에 정확히 "RESTORE-{YYYY-MM-DD}" 입력 (날짜 매칭 검증)
+//     2) password 필드에 관리자 비밀번호 재입력 (재인증)
+//     3) 자동 pre-restore 백업 생성
+//
+//   [응급 복원] 1시간 이내 생성 백업 → 단순화 (방금 실수 즉시 되돌리기)
+//     1) emergency=true 플래그 + confirm: "EMERGENCY-RESTORE" (1단계 확인만)
+//     2) 자동 pre-restore 백업 생성 (이건 절대 생략 안함)
+//
+//   공통:
+//     - backup_history / admin_audit_logs 테이블은 복원 대상에서 제외
+//     - 모든 시도는 감사 로그에 기록
 // ──────────────────────────────────────────────────────────────────
 admin.post('/backups/:id/restore', async (c) => {
   const id = parseInt(c.req.param('id'));
@@ -1113,46 +1127,109 @@ admin.post('/backups/:id/restore', async (c) => {
     return c.json({ error: '잘못된 백업 ID' }, 400);
   }
 
-  let body: { confirm?: string } = {};
+  let body: { confirm?: string; password?: string; emergency?: boolean } = {};
   try {
     body = await c.req.json();
   } catch {
     return c.json({ error: '잘못된 요청 본문' }, 400);
   }
 
-  if (body.confirm !== 'RESTORE') {
-    await logAudit(c, 'restore', `backup:${id}`, { reason: 'missing confirmation' }, 'denied');
-    return c.json(
-      { error: '복원을 진행하려면 confirm 필드에 "RESTORE" 값을 정확히 입력해야 합니다.' },
-      400
-    );
-  }
-
   const adminUser = c.get('admin');
-  const username = adminUser?.username || 'unknown';
+  if (!adminUser) return c.json({ error: 'Unauthorized' }, 401);
+  const username = adminUser.username || 'unknown';
 
   try {
+    // ─── 백업 기록 조회 (created_at 포함) ───
     const row = await c.env.DB.prepare(
-      'SELECT file_key FROM backup_history WHERE id = ?'
+      'SELECT file_key, created_at, backup_type FROM backup_history WHERE id = ?'
     )
       .bind(id)
-      .first<{ file_key: string }>();
+      .first<{ file_key: string; created_at: string; backup_type: string }>();
 
     if (!row || !row.file_key) {
       return c.json({ error: '백업 기록을 찾을 수 없습니다.' }, 404);
     }
 
-    const result = await restoreFromBackup(c.env, row.file_key, username);
+    // ─── 응급 복원 vs 표준 복원 분기 ───
+    const isEmergencyEligible = isWithinEmergencyWindow(row.created_at);
+    const requestedEmergency = body.emergency === true;
+
+    if (requestedEmergency) {
+      // 응급 복원 요청: 1시간 윈도우 검증
+      if (!isEmergencyEligible) {
+        await logAudit(c, 'restore', `backup:${id}`, {
+          reason: 'emergency window expired',
+          backup_age_min: Math.round((Date.now() - new Date(row.created_at.replace(' ', 'T') + 'Z').getTime()) / 60000),
+        }, 'denied');
+        return c.json(
+          { error: '응급 복원은 생성된 지 1시간 이내 백업만 가능합니다. 표준 복원 절차(텍스트확인+비밀번호)를 사용하세요.' },
+          400
+        );
+      }
+      // 응급 복원: 1단계 확인만
+      if (body.confirm !== 'EMERGENCY-RESTORE') {
+        await logAudit(c, 'restore', `backup:${id}`, { reason: 'emergency: missing confirmation' }, 'denied');
+        return c.json(
+          { error: '응급 복원을 진행하려면 confirm 필드에 정확히 "EMERGENCY-RESTORE" 값을 입력해야 합니다.' },
+          400
+        );
+      }
+    } else {
+      // ─── 표준 복원: 3단계 안전장치 ───
+
+      // STEP 1: 날짜 포함 확인 토큰 검증
+      const datePart = row.created_at.slice(0, 10); // "YYYY-MM-DD"
+      const expectedConfirm = `RESTORE-${datePart}`;
+      if (body.confirm !== expectedConfirm) {
+        await logAudit(c, 'restore', `backup:${id}`, {
+          reason: 'missing or wrong confirmation',
+          expected_pattern: 'RESTORE-YYYY-MM-DD',
+        }, 'denied');
+        return c.json(
+          { error: `복원을 진행하려면 confirm 필드에 정확히 "${expectedConfirm}" 값을 입력해야 합니다.` },
+          400
+        );
+      }
+
+      // STEP 2: 관리자 비밀번호 재인증
+      if (!body.password || typeof body.password !== 'string') {
+        await logAudit(c, 'restore', `backup:${id}`, { reason: 'missing password' }, 'denied');
+        return c.json({ error: '복원을 진행하려면 관리자 비밀번호 재입력이 필요합니다.' }, 400);
+      }
+
+      const user = await c.env.DB.prepare(
+        'SELECT password_hash, salt FROM admin_users WHERE id = ?'
+      )
+        .bind(adminUser.id)
+        .first<{ password_hash: string; salt: string }>();
+
+      if (!user) {
+        return c.json({ error: '관리자 계정을 찾을 수 없습니다.' }, 404);
+      }
+
+      const validPwd = await verifyPassword(body.password, user.salt, user.password_hash);
+      if (!validPwd) {
+        await logAudit(c, 'restore', `backup:${id}`, { reason: 'wrong password' }, 'denied');
+        return c.json({ error: '관리자 비밀번호가 올바르지 않습니다.' }, 401);
+      }
+    }
+
+    // ─── STEP 3 (공통): 복원 실행 (내부에서 자동 pre-restore 생성) ───
+    const triggerLabel = requestedEmergency ? `emergency:${username}` : username;
+    const result = await restoreFromBackup(c.env, row.file_key, triggerLabel);
 
     if (result.success) {
       await logAudit(c, 'restore', `backup:${row.file_key}`, {
+        mode: requestedEmergency ? 'emergency' : 'standard',
         pre_restore_backup: result.preRestoreBackupKey,
         restored_tables: result.restoredTables,
         restored_rows: result.restoredRows,
         duration_ms: result.durationMs,
+        backup_type: row.backup_type,
       });
       return c.json({
         success: true,
+        mode: requestedEmergency ? 'emergency' : 'standard',
         message: `복원 성공: ${result.restoredTables}개 테이블, ${result.restoredRows}개 행`,
         result,
       });
@@ -1165,6 +1242,99 @@ admin.post('/backups/:id/restore', async (c) => {
     await logAudit(c, 'restore', `backup:exception`, { error: msg }, 'failed');
     return c.json({ error: msg }, 500);
   }
+});
+
+// ──────────────────────────────────────────────────────────────────
+// v39.32: POST /api/admin/backups/emergency  → 응급 백업 (원클릭)
+// ──────────────────────────────────────────────────────────────────
+// "지금 큰 작업 하기 전인데 일단 백업해두고 싶어" 시나리오용.
+// - 인증된 관리자라면 누구나 호출 가능 (확인 모달 없이 즉시 실행)
+// - 항상 'manual' 타입으로 생성 (무기한 보존)
+// - 부담 없이 자주 누르도록 설계 — Rate limit만 있음 (1분 1회)
+// ──────────────────────────────────────────────────────────────────
+admin.post('/backups/emergency', async (c) => {
+  const adminUser = c.get('admin');
+  if (!adminUser) return c.json({ error: 'Unauthorized' }, 401);
+  const username = adminUser.username || 'unknown';
+
+  // 간단한 rate limit (KV 기반, 같은 user가 1분에 1회만)
+  if (c.env.RATE_LIMIT_KV) {
+    const key = `rl:emergency-backup:${adminUser.id}`;
+    const existing = await c.env.RATE_LIMIT_KV.get(key);
+    if (existing) {
+      return c.json(
+        { error: '응급 백업은 1분에 1회만 가능합니다. 잠시 후 다시 시도하세요.' },
+        429
+      );
+    }
+    await c.env.RATE_LIMIT_KV.put(key, '1', { expirationTtl: 60 });
+  }
+
+  try {
+    const result = await createBackup(c.env, 'manual', `emergency:${username}`);
+    if (result.success) {
+      await logAudit(c, 'backup', `backup:${result.fileKey}`, {
+        type: 'manual',
+        trigger: 'emergency',
+        fileSize: result.fileSize,
+        tableCount: result.tableCount,
+        totalRows: result.totalRows,
+        durationMs: result.durationMs,
+      });
+      return c.json({ success: true, backup: result });
+    } else {
+      await logAudit(c, 'backup', `backup:emergency:failed`, { error: result.error }, 'failed');
+      return c.json({ error: result.error || '응급 백업 실패' }, 500);
+    }
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    await logAudit(c, 'backup', `backup:emergency:exception`, { error: msg }, 'failed');
+    return c.json({ error: msg }, 500);
+  }
+});
+
+// ──────────────────────────────────────────────────────────────────
+// v39.32: POST /api/admin/backups/cleanup  → GFS 보존 정책 수동 실행
+// ──────────────────────────────────────────────────────────────────
+// 관리자가 admin UI에서 즉시 정리를 트리거하고 싶을 때 사용.
+// (자동 cleanup은 매주 일요일 새벽 5시 cron-job.org가 호출)
+// ──────────────────────────────────────────────────────────────────
+admin.post('/backups/cleanup', async (c) => {
+  const adminUser = c.get('admin');
+  if (!adminUser) return c.json({ error: 'Unauthorized' }, 401);
+
+  try {
+    const result = await applyAllRetentionPolicies(c.env);
+    await logAudit(c, 'delete', 'backup:cleanup:manual', {
+      totalDeleted: result.totalDeleted,
+      byType: result.byType,
+      durationMs: result.durationMs,
+    }, result.success ? 'success' : 'failed');
+
+    return c.json({
+      success: result.success,
+      totalDeleted: result.totalDeleted,
+      byType: result.byType,
+      durationMs: result.durationMs,
+      error: result.error,
+    });
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return c.json({ error: msg }, 500);
+  }
+});
+
+// ──────────────────────────────────────────────────────────────────
+// v39.32: GET /api/admin/backups/retention-policy
+// ──────────────────────────────────────────────────────────────────
+// UI에서 현재 보존 정책을 표시하기 위한 read-only 엔드포인트
+// ──────────────────────────────────────────────────────────────────
+admin.get('/backups/retention-policy', async (c) => {
+  return c.json({
+    success: true,
+    policy: RETENTION_POLICY,
+    emergency_window_minutes: EMERGENCY_RESTORE_WINDOW_MS / 60000,
+  });
 });
 
 // ──────────────────────────────────────────────────────────────────

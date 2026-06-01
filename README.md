@@ -1,10 +1,11 @@
-# KOIST Website v39.31
+# KOIST Website v39.32
 
 **(주)한국정보보안기술원** 공식 웹사이트 — **koist.kr 원본 디자인 완전 복제** (Scoped Legacy Theme) + **개인정보보호법 완전 준수 4-Phase 업그레이드**
 
 ## URLs
 - **Production**: https://koist-website.pages.dev (메인)
-- **v39.31 (Latest)**: 외부 cron 백업 자동화 (`/api/cron/backup` 토큰 인증 엔드포인트)
+- **v39.32 (Latest)**: 응급 백업/복원 + GFS 보존 정책 (비대칭 안전 UX)
+- **v39.31**: 외부 cron 백업 자동화 (`/api/cron/backup` 토큰 인증 엔드포인트)
 - **v39.30**: 엑셀 스타일 문의 관리 + 마스킹 + Excel/CSV 내보내기 + SheetJS
 - **v39.29**: 개인정보처리방침(/privacy) + Soft Delete + 감사 로그
 - **v39.28**: 자동 백업 시스템 (Cron + R2 + 관리자 UI)
@@ -25,6 +26,100 @@
 - **Cron Ping**: /api/cron/ping (인증 불필요, 연결 확인용)
 - **상담문의 관리**: /admin/inquiries (v39.30 — 엑셀 스타일, 마스킹, 내보내기)
 - **개인정보처리방침**: /privacy (v39.29)
+- **응급 백업 버튼**: 모든 /admin 페이지 우측 상단 (v39.32 — 1클릭 즉시 백업)
+- **자동 정리 엔드포인트**: `/api/cron/cleanup?token=...` (v39.32 — GFS 보존 정책)
+
+---
+
+## 🛡️ v39.32 — 응급 백업/복원 시스템 + GFS 보존 정책 (2026-06-01)
+
+### 핵심 철학: **비대칭 UX (Asymmetric Safety)**
+> **"백업 버튼은 크고 빨갛게, 복원 버튼은 작고 6번 확인하게"**
+>
+> 백업은 안전한 작업(읽기 전용) → 자주, 빠르게  
+> 복원은 위험한 작업(비가역) → 신중하게, 단계적으로
+
+### ① 응급 백업 (Emergency Backup)
+- **위치**: 모든 admin 페이지 우측 상단 헤더 (🛡️ 빨간 버튼, 전역 노출)
+- **동작**: 1클릭 → 즉시 `manual` 타입 백업 생성 → 토스트 알림
+- **API**: `POST /api/admin/backups/emergency`
+- **Rate Limit**: 사용자별 1분 1회 (실수 연타 방지)
+- **백업 유형**: 항상 `manual` (무제한 보존, 자동 삭제 안됨)
+
+### ② 표준 복원 (3단계 안전장치)
+1시간 이상 지난 백업의 복원에는 다음 3단계 모두 필수:
+
+| 단계 | 확인 방법 | 목적 |
+|------|----------|------|
+| **STEP 1** | `RESTORE-YYYY-MM-DD` 정확 입력 (날짜 매칭) | 의도성 검증 |
+| **STEP 2** | 관리자 비밀번호 재입력 | 신원 재인증 |
+| **STEP 3** | 자동 `pre-restore` 백업 생성 (서버측) | 복구 안전망 |
+
+- **API**: `POST /api/admin/backups/:id/restore` (body: `{confirm, password}`)
+- **UI**: 진행 단계 인디케이터 (1→2→3) + 색상 변화 피드백
+- **잘못된 비밀번호**: 즉시 거부 + 감사 로그 기록 (`status='denied'`)
+
+### ③ 응급 복원 모드 ⚡
+- **조건**: 생성된 지 **1시간 이내**인 백업만 가능
+- **시나리오**: "방금 큰 실수했다 → 1시간 전 시점으로 즉시 되돌리기"
+- **UI**: 1시간 이내 백업에는 ⚡ 응급 복원 버튼 추가 표시
+- **안전장치**: 1단계 확인만 (`EMERGENCY-RESTORE` 입력), 하지만 pre-restore 자동 백업은 **절대 생략 안함**
+- **API**: 같은 endpoint에 `emergency: true` 플래그 → 서버측 1시간 윈도우 별도 검증
+
+### ④ GFS 보존 정책 (Grandfather-Father-Son)
+**개수 기반** 보존으로 일관성 보장:
+
+| 유형 | 보존 개수 | 의미 |
+|------|----------|------|
+| `daily` | **최근 14개** | 2주 매일 시점 복귀 가능 |
+| `weekly` | **최근 8개** | 2개월 주별 시점 |
+| `monthly` | **최근 12개** | 1년 월별 시점 |
+| `manual` | **무제한** | 사용자 의도 백업 → 절대 자동 삭제 안함 🔒 |
+| `pre-restore` | **30일** | 복원 직전 스냅샷 → 1달 후 자동 정리 |
+
+**예상 R2 사용량**: ~3 MB (Manual 제외, 거의 0에 수렴)
+
+### ⑤ 자동 정리 (Cleanup Cron)
+- **신규 엔드포인트**: `POST/GET /api/cron/cleanup?token=<CRON_SECRET>`
+- **수동 트리거**: admin UI "🧹 지금 정리" 버튼 → `POST /api/admin/backups/cleanup`
+- **권장 cron**: 매주 일요일 새벽 5시 (`0 5 * * 0`) — 주간 백업 4시 직후
+- **응답 예시**:
+```json
+{
+  "ok": true,
+  "totalDeleted": 0,
+  "byType": {
+    "daily": {"deleted": 0, "kept": 6},
+    "manual": {"deleted": 0, "kept": 1, "protected": 1}
+  },
+  "durationMs": 47
+}
+```
+
+### 🧪 프로덕션 검증
+| 테스트 | 결과 |
+|--------|------|
+| `GET /api/cron/ping` | ✅ 200 OK |
+| `POST /api/cron/cleanup` (no token) | ✅ 401 |
+| `POST /api/cron/cleanup` (wrong token) | ✅ 401 |
+| `POST /api/admin/backups/emergency` (no auth) | ✅ 401 |
+| 로컬 cleanup (실제 실행) | ✅ 200, 47ms, Manual 보호 확인 |
+
+### 📝 신규/변경 API 엔드포인트
+| Method | Path | 권한 | 설명 |
+|--------|------|------|------|
+| POST | `/api/admin/backups/emergency` | admin | 응급 백업 (1클릭) |
+| POST | `/api/admin/backups/:id/restore` | admin | 복원 (3단계 또는 응급) |
+| POST | `/api/admin/backups/cleanup` | admin | 보존 정책 즉시 적용 |
+| GET | `/api/admin/backups/retention-policy` | admin | 정책 조회 |
+| POST/GET | `/api/cron/cleanup` | token | 자동 정리 (cron-job.org용) |
+
+### 📂 변경 파일
+- `src/utils/backup.ts` — GFS 정책 (`RETENTION_POLICY`, `applyAllRetentionPolicies`), 응급 윈도우 헬퍼
+- `src/routes/cron.ts` — `/api/cron/cleanup` 엔드포인트 추가
+- `src/routes/admin.ts` — 복원 API 강화 (비밀번호 + 응급 분기), 신규 응급 백업/cleanup API
+- `src/templates/admin/index.tsx` — 헤더 응급 백업 버튼 (전역), 인라인 핸들러
+- `public/static/js/admin-backups.js` — 3단계 복원 모달, 응급 복원, cleanup 모달, ⚡ 표시
 
 ---
 

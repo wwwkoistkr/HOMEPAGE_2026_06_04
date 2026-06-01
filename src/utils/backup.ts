@@ -436,41 +436,201 @@ export async function createBackup(
 }
 
 // ───────────────────────────────────────────────────────────────────
-// 보존 정책 적용 (R2 + backup_history 동시 정리)
+// 보존 정책 (v39.32: GFS - Grandfather-Father-Son 계층형 보존)
 // ───────────────────────────────────────────────────────────────────
-const RETENTION_DAYS: Record<BackupType, number> = {
-  daily: 7,
-  weekly: 28,
-  monthly: 365,
-  manual: 0, // 0 = 무기한 (자동 삭제 안함)
-  'pre-restore': 30,
+//
+// GFS (Grandfather-Father-Son) 패턴:
+//   - Daily   : 최근 14개 (최근 2주 매일 시점 복귀 가능)
+//   - Weekly  : 최근 8개  (최근 2개월 주별 시점)
+//   - Monthly : 최근 12개 (지난 1년 월별 시점)
+//   - Manual  : 무제한    (관리자가 의도적으로 만든 백업은 보호)
+//   - pre-restore: 최근 30일 (응급 복원 직전 스냅샷, 1달 후 자동 삭제)
+//
+// 개수 기반(GFS)을 사용하는 이유:
+//   - 일수 기반은 백업 cron이 잠시 멈춰도 다 사라질 위험
+//   - 개수 기반은 "최근 N개"를 보장하므로 안전망 일관성 ↑
+//   - Manual은 무제한이지만 사용자가 명시적으로 만든 것이므로 자동 삭제 금지
+// ───────────────────────────────────────────────────────────────────
+export const RETENTION_POLICY: Record<BackupType, { keepCount: number; keepDays: number }> = {
+  daily: { keepCount: 14, keepDays: 0 },     // 최근 14개 (2주)
+  weekly: { keepCount: 8, keepDays: 0 },     // 최근 8개 (2개월)
+  monthly: { keepCount: 12, keepDays: 0 },   // 최근 12개 (1년)
+  manual: { keepCount: -1, keepDays: 0 },    // -1 = 무제한 (자동 삭제 금지)
+  'pre-restore': { keepCount: 0, keepDays: 30 }, // 30일 후 자동 삭제
 };
 
+/**
+ * v39.32: GFS 보존 정책 — backup 생성 시 호출되어 같은 type의 초과분 삭제.
+ * (cron cleanup과 별개로, 백업 직후에도 즉시 정리 — 사실상 동일한 정책 적용)
+ */
 async function applyRetentionPolicy(env: Bindings, type: BackupType): Promise<void> {
-  const days = RETENTION_DAYS[type];
-  if (days <= 0) return; // manual은 자동 삭제 안함
+  const policy = RETENTION_POLICY[type];
+  if (!policy) return;
+
+  // manual은 절대 자동 삭제하지 않음
+  if (policy.keepCount === -1) return;
 
   const db = env.DB;
   const r2 = env.R2;
   if (!r2) return;
 
-  const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  try {
+    if (policy.keepCount > 0) {
+      // 개수 기반 정리: 최근 N개를 제외한 나머지 삭제
+      const oldBackups = await db
+        .prepare(
+          `SELECT id, file_key FROM backup_history
+           WHERE backup_type = ? AND status = 'success'
+           ORDER BY created_at DESC
+           LIMIT -1 OFFSET ?`
+        )
+        .bind(type, policy.keepCount)
+        .all<{ id: number; file_key: string }>();
 
-  const oldBackups = await db
-    .prepare(
-      `SELECT id, file_key FROM backup_history 
-       WHERE backup_type = ? AND created_at < ? AND status = 'success'`
-    )
-    .bind(type, cutoff)
-    .all<{ id: number; file_key: string }>();
+      for (const row of oldBackups.results || []) {
+        try {
+          if (row.file_key) await r2.delete(row.file_key);
+          await db.prepare(`DELETE FROM backup_history WHERE id = ?`).bind(row.id).run();
+        } catch (e) {
+          console.error('[backup] retention cleanup failed for', row.file_key, e);
+        }
+      }
+    } else if (policy.keepDays > 0) {
+      // 일수 기반 정리: N일 이상 지난 백업 삭제 (pre-restore 전용)
+      const cutoff = new Date(Date.now() - policy.keepDays * 24 * 60 * 60 * 1000).toISOString();
+      const oldBackups = await db
+        .prepare(
+          `SELECT id, file_key FROM backup_history
+           WHERE backup_type = ? AND created_at < ? AND status = 'success'`
+        )
+        .bind(type, cutoff)
+        .all<{ id: number; file_key: string }>();
 
-  for (const row of oldBackups.results || []) {
-    try {
-      if (row.file_key) await r2.delete(row.file_key);
-      await db.prepare(`DELETE FROM backup_history WHERE id = ?`).bind(row.id).run();
-    } catch (e) {
-      console.error('[backup] retention cleanup failed for', row.file_key, e);
+      for (const row of oldBackups.results || []) {
+        try {
+          if (row.file_key) await r2.delete(row.file_key);
+          await db.prepare(`DELETE FROM backup_history WHERE id = ?`).bind(row.id).run();
+        } catch (e) {
+          console.error('[backup] retention cleanup failed for', row.file_key, e);
+        }
+      }
     }
+  } catch (e) {
+    console.error('[backup] retention policy error:', e);
+  }
+}
+
+// ───────────────────────────────────────────────────────────────────
+// v39.32: 전체 보존 정책 일괄 적용 (cron cleanup endpoint에서 호출)
+// ───────────────────────────────────────────────────────────────────
+export interface CleanupResult {
+  success: boolean;
+  totalDeleted: number;
+  byType: Record<string, { deleted: number; kept: number; protected?: number }>;
+  durationMs: number;
+  error?: string;
+}
+
+export async function applyAllRetentionPolicies(env: Bindings): Promise<CleanupResult> {
+  const startTime = Date.now();
+  const result: CleanupResult = {
+    success: true,
+    totalDeleted: 0,
+    byType: {},
+    durationMs: 0,
+  };
+
+  const types: BackupType[] = ['daily', 'weekly', 'monthly', 'pre-restore', 'manual'];
+
+  try {
+    for (const type of types) {
+      const policy = RETENTION_POLICY[type];
+
+      // manual은 보호 (개수만 카운트, 삭제 안함)
+      if (policy.keepCount === -1) {
+        const c = await env.DB.prepare(
+          `SELECT COUNT(*) as cnt FROM backup_history WHERE backup_type = ? AND status = 'success'`
+        )
+          .bind(type)
+          .first<{ cnt: number }>();
+        result.byType[type] = { deleted: 0, kept: c?.cnt || 0, protected: c?.cnt || 0 };
+        continue;
+      }
+
+      // 삭제 대상 식별
+      let toDelete: { id: number; file_key: string }[] = [];
+      if (policy.keepCount > 0) {
+        const rs = await env.DB.prepare(
+          `SELECT id, file_key FROM backup_history
+           WHERE backup_type = ? AND status = 'success'
+           ORDER BY created_at DESC
+           LIMIT -1 OFFSET ?`
+        )
+          .bind(type, policy.keepCount)
+          .all<{ id: number; file_key: string }>();
+        toDelete = rs.results || [];
+      } else if (policy.keepDays > 0) {
+        const cutoff = new Date(Date.now() - policy.keepDays * 24 * 60 * 60 * 1000).toISOString();
+        const rs = await env.DB.prepare(
+          `SELECT id, file_key FROM backup_history
+           WHERE backup_type = ? AND created_at < ? AND status = 'success'`
+        )
+          .bind(type, cutoff)
+          .all<{ id: number; file_key: string }>();
+        toDelete = rs.results || [];
+      }
+
+      // 삭제 실행
+      let deleted = 0;
+      for (const row of toDelete) {
+        try {
+          if (row.file_key && env.R2) await env.R2.delete(row.file_key);
+          await env.DB.prepare(`DELETE FROM backup_history WHERE id = ?`).bind(row.id).run();
+          deleted++;
+        } catch (e) {
+          console.error('[cleanup] failed for', row.file_key, e);
+        }
+      }
+
+      // 남은 개수
+      const remaining = await env.DB.prepare(
+        `SELECT COUNT(*) as cnt FROM backup_history WHERE backup_type = ? AND status = 'success'`
+      )
+        .bind(type)
+        .first<{ cnt: number }>();
+
+      result.byType[type] = { deleted, kept: remaining?.cnt || 0 };
+      result.totalDeleted += deleted;
+    }
+
+    result.durationMs = Date.now() - startTime;
+    return result;
+  } catch (e: any) {
+    result.success = false;
+    result.error = e?.message || String(e);
+    result.durationMs = Date.now() - startTime;
+    return result;
+  }
+}
+
+// ───────────────────────────────────────────────────────────────────
+// v39.32: 응급 복원 모드 — 1시간 이내 생성된 백업인지 확인
+// ───────────────────────────────────────────────────────────────────
+// "방금 큰 실수했을 때 즉시 되돌리기" 용도.
+// 1시간 이상 지난 백업으로의 복원은 반드시 3단계 안전장치를 거쳐야 한다.
+export const EMERGENCY_RESTORE_WINDOW_MS = 60 * 60 * 1000; // 1시간
+
+export function isWithinEmergencyWindow(createdAtIso: string): boolean {
+  try {
+    // SQLite CURRENT_TIMESTAMP: "YYYY-MM-DD HH:MM:SS" (UTC)
+    const normalized = createdAtIso.includes('T')
+      ? createdAtIso
+      : createdAtIso.replace(' ', 'T') + 'Z';
+    const t = new Date(normalized).getTime();
+    if (isNaN(t)) return false;
+    return Date.now() - t <= EMERGENCY_RESTORE_WINDOW_MS;
+  } catch {
+    return false;
   }
 }
 
