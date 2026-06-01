@@ -1,8 +1,12 @@
-// Admin - Progress Management v40.0 (departments DB 동적 로딩 + 4+1 그룹 + 매트릭스)
-// v40.0 핵심 변경:
+// Admin - Progress Management v40.1 (table-fixed + colgroup + 1.5× 강조 + 30% 컬럼 축소)
+// v40.1 핵심 변경 (사용자 피드백 반영):
+//   - table-fixed + colgroup으로 컬럼 폭 명시 (브라우저 자동 분배 차단)
+//   - 제품명·업체 컬럼: 30% (기존 45~50%에서 축소)
+//   - 글자 크기: text-lg (1.5×) + font-bold (강조 강화)
+//   - whitespace-nowrap + overflow-hidden + text-ellipsis (한 줄 강제)
+// v40.0 변경 (그대로 유지):
 //   - JS 하드코딩 CATEGORIES 폐기 → departments 테이블에서 동적 로딩
 //   - is_main_progress=1 카테고리만 카드로 표시 (나머지는 "기타" 그룹)
-//   - 제품명/업체 한 줄 + 1.33배 강조
 //   - 카드 안 미니 매트릭스 (접수·진행·완료)
 //   - 별도 섹션 상세 매트릭스 표 (비율 포함)
 (async function() {
@@ -207,21 +211,40 @@
     h += '<div id="progFormArea" class="hidden mb-4"></div>';
 
     // ────────────────────────────────────────────────
-    // 4) 테이블 (Q1: 제품명/업체 한 줄 + 1.33배 강조)
+    // 4) 테이블 (v40.1: 제품명·업체 한 줄 + 1.5배 강조 + 컬럼 폭 30% 축소)
+    //   - colgroup으로 폭 명시 → 브라우저 자동 분배 차단
+    //   - 제품명·업체 컬럼: ~30% (기존 45~50%에서 축소)
+    //   - 등급/구분/유형/상태에 추가 공간 분배
+    //   - whitespace-nowrap + overflow-hidden + text-ellipsis로 한 줄 강제
     // ────────────────────────────────────────────────
+    const showCatCol = (!currentCategory || currentCategory === '기타');
     h += '<div class="overflow-x-auto border rounded-lg">';
-    h += '<table class="w-full text-sm"><thead><tr class="bg-gray-50 border-b">';
-    h += '<th class="py-2.5 px-3 text-left text-xs font-semibold text-gray-500 w-12">No</th>';
-    if (!currentCategory || currentCategory === '기타') {
+    h += '<table class="w-full text-sm table-fixed">';
+    // colgroup으로 컬럼 폭 명시 (table-fixed와 함께 사용 → 강제 적용)
+    h += '<colgroup>';
+    h += '<col style="width:3.5rem">';                  // No
+    if (showCatCol) {
+      h += '<col style="width:11%">';                   // 사업분류
+    }
+    h += '<col style="width:30%">';                     // 제품명·업체 (★ 30%)
+    h += '<col style="width:13%">';                     // 등급
+    h += '<col style="width:12%" class="hidden md:table-column">'; // 구분
+    h += '<col style="width:12%" class="hidden lg:table-column">'; // 유형
+    h += '<col style="width:11%">';                     // 상태
+    h += '<col style="width:7rem">';                    // 작업
+    h += '</colgroup>';
+
+    h += '<thead><tr class="bg-gray-50 border-b">';
+    h += '<th class="py-2.5 px-3 text-left text-xs font-semibold text-gray-500">No</th>';
+    if (showCatCol) {
       h += '<th class="py-2.5 px-3 text-left text-xs font-semibold text-gray-500">사업분류</th>';
     }
-    // 제품명/업체 컬럼 (1.33배 강조, 한 줄)
     h += '<th class="py-2.5 px-3 text-left text-xs font-semibold text-gray-500">제품명 · 업체</th>';
     h += '<th class="py-2.5 px-3 text-center text-xs font-semibold text-gray-500">' + (meta ? esc(meta.col2 || '등급') : '등급') + '</th>';
     h += '<th class="py-2.5 px-3 text-center text-xs font-semibold text-gray-500 hidden md:table-cell">' + (meta ? esc(meta.col3 || '구분') : '구분') + '</th>';
     h += '<th class="py-2.5 px-3 text-center text-xs font-semibold text-gray-500 hidden lg:table-cell">' + (meta ? esc(meta.col4 || '유형') : '유형') + '</th>';
     h += '<th class="py-2.5 px-3 text-center text-xs font-semibold text-gray-500">상태</th>';
-    h += '<th class="py-2.5 px-3 text-center text-xs font-semibold text-gray-500 w-24">작업</th>';
+    h += '<th class="py-2.5 px-3 text-center text-xs font-semibold text-gray-500">작업</th>';
     h += '</tr></thead><tbody>';
 
     filtered.forEach(function(p, i) {
@@ -230,24 +253,24 @@
       const statusCls = isComplete ? 'bg-green-50 text-green-600 border-green-200' : isProgress ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-yellow-50 text-yellow-600 border-yellow-200';
       const cm = categoriesMeta[p.category] || FALLBACK_META;
       h += '<tr class="border-t hover:bg-gray-50/50">';
-      h += '<td class="py-2 px-3 text-gray-400 text-xs">' + (i + 1) + '</td>';
-      if (!currentCategory || currentCategory === '기타') {
-        h += '<td class="py-2 px-3"><span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium" style="background:' + cm.color + '10; color:' + cm.color + '"><i class="fas ' + cm.icon + '" style="font-size:9px"></i>' + esc(p.category) + '</span></td>';
+      h += '<td class="py-2 px-3 text-gray-400 text-xs align-middle">' + (i + 1) + '</td>';
+      if (showCatCol) {
+        h += '<td class="py-2 px-3 align-middle overflow-hidden"><span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap" style="background:' + cm.color + '10; color:' + cm.color + '"><i class="fas ' + cm.icon + '" style="font-size:9px"></i>' + esc(p.category) + '</span></td>';
       }
-      // v40.0 Q1: 제품명 · 업체 한 줄, text-base (1.33배), 강조
-      h += '<td class="py-2 px-3">';
-      h += '<div class="text-base font-semibold text-gray-800">';
+      // ★ v40.1: 제품명 · 업체 한 줄, text-lg (1.5배), 강조 + 한줄 강제 + 잘림 표시
+      h += '<td class="py-2 px-3 align-middle">';
+      h += '<div class="text-lg font-bold text-gray-800 whitespace-nowrap overflow-hidden text-ellipsis" title="' + esc(p.product_name) + (p.company ? ' · ' + esc(p.company) : '') + '">';
       h += esc(p.product_name);
       if (p.company) {
         h += '<span class="text-gray-500 font-normal"> · ' + esc(p.company) + '</span>';
       }
       h += '</div>';
       h += '</td>';
-      h += '<td class="py-2 px-3 text-center"><span class="bg-gray-100 px-2 py-0.5 rounded text-xs font-mono">' + esc(p.assurance_level || '-') + '</span></td>';
-      h += '<td class="py-2 px-3 text-center text-xs text-gray-600 hidden md:table-cell">' + esc(p.cert_type || '-') + '</td>';
-      h += '<td class="py-2 px-3 text-center text-xs text-gray-600 hidden lg:table-cell">' + esc(p.eval_type || '-') + '</td>';
-      h += '<td class="py-2 px-3 text-center"><span class="px-2 py-0.5 rounded text-xs border ' + statusCls + '">' + esc(p.status) + '</span></td>';
-      h += '<td class="py-2 px-3 text-center whitespace-nowrap">';
+      h += '<td class="py-2 px-3 text-center align-middle"><span class="bg-gray-100 px-2 py-0.5 rounded text-xs font-mono whitespace-nowrap">' + esc(p.assurance_level || '-') + '</span></td>';
+      h += '<td class="py-2 px-3 text-center text-xs text-gray-600 hidden md:table-cell align-middle overflow-hidden text-ellipsis whitespace-nowrap">' + esc(p.cert_type || '-') + '</td>';
+      h += '<td class="py-2 px-3 text-center text-xs text-gray-600 hidden lg:table-cell align-middle overflow-hidden text-ellipsis whitespace-nowrap">' + esc(p.eval_type || '-') + '</td>';
+      h += '<td class="py-2 px-3 text-center align-middle"><span class="px-2 py-0.5 rounded text-xs border whitespace-nowrap ' + statusCls + '">' + esc(p.status) + '</span></td>';
+      h += '<td class="py-2 px-3 text-center whitespace-nowrap align-middle">';
       h += '<button onclick="editProg(' + p.id + ')" class="text-blue-500 text-xs hover:underline mr-2"><i class="fas fa-edit"></i> 수정</button>';
       h += '<button onclick="deleteProg(' + p.id + ')" class="text-red-500 text-xs hover:underline"><i class="fas fa-trash"></i></button>';
       h += '</td></tr>';
