@@ -839,3 +839,244 @@ export function downloadsPage(downloads: { id: number; title: string; descriptio
     </div>
   </section>`;
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// Privacy Policy Page (v39.29 Phase 3 - 개인정보처리방침)
+// ═══════════════════════════════════════════════════════════════════
+// 근거 법령:
+//   - 「개인정보 보호법」제30조 (개인정보 처리방침의 수립 및 공개)
+//   - 「개인정보 보호법 시행령」제31조
+// 필수 기재 항목 (제30조 제1항):
+//   1. 개인정보의 처리 목적
+//   2. 처리 항목
+//   3. 처리 및 보유 기간
+//   4. 제3자 제공
+//   5. 처리 위탁
+//   6. 정보주체의 권리·의무 및 행사 방법
+//   7. 개인정보 안전성 확보 조치
+//   8. 개인정보 보호책임자
+//   9. 처리방침 변경
+// ═══════════════════════════════════════════════════════════════════
+export function privacyPolicyPage(settings: SettingsMap = {}) {
+  const s = settings;
+  const orgName = s.site_name || '한국정보보호기술원(KOIST)';
+  const today = new Date().toISOString().slice(0, 10);
+
+  return `
+  ${pageHeader({
+    title: '개인정보처리방침',
+    icon: 'fa-user-shield',
+    iconColor: '#10B981',
+    subtitle: `${orgName}의 개인정보 수집·이용·보관·파기에 관한 사항을 안내합니다.`,
+    settings: s,
+  })}
+
+  <section style="padding:var(--space-xl) 0; background: var(--grad-surface);">
+    <div class="fluid-container" style="max-width:min(960px, 100% - var(--container-pad) * 2);">
+
+      <!-- 요약 카드 -->
+      <div class="bg-white rounded-2xl border border-emerald-100 p-6 mb-6" style="box-shadow: 0 2px 16px rgba(16,185,129,0.06);">
+        <div class="flex items-start gap-3 mb-3">
+          <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
+            <i class="fas fa-shield-check text-emerald-600"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-slate-800 text-base">한눈에 보는 개인정보 처리방침</h2>
+            <p class="text-sm text-slate-500 mt-1">${orgName}은 정보주체의 자유와 권리 보호를 위해 「개인정보 보호법」 및 관계 법령이 정한 바를 준수하여, 적법하게 개인정보를 처리하고 안전하게 관리하고 있습니다.</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
+          <div class="bg-slate-50 rounded-lg p-3 text-center">
+            <i class="fas fa-bullseye text-blue-500 text-xl block mb-1"></i>
+            <div class="text-xs font-semibold text-slate-700">처리 목적</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">상담문의 응대</div>
+          </div>
+          <div class="bg-slate-50 rounded-lg p-3 text-center">
+            <i class="fas fa-list text-purple-500 text-xl block mb-1"></i>
+            <div class="text-xs font-semibold text-slate-700">처리 항목</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">이름·연락처 등</div>
+          </div>
+          <div class="bg-slate-50 rounded-lg p-3 text-center">
+            <i class="fas fa-clock text-orange-500 text-xl block mb-1"></i>
+            <div class="text-xs font-semibold text-slate-700">보관 기간</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">3년</div>
+          </div>
+          <div class="bg-slate-50 rounded-lg p-3 text-center">
+            <i class="fas fa-users-slash text-red-500 text-xl block mb-1"></i>
+            <div class="text-xs font-semibold text-slate-700">제3자 제공</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">없음</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 본문 -->
+      <article class="bg-white rounded-2xl border border-slate-200/60 p-[clamp(1.5rem,3vw,2.5rem)]" style="box-shadow: var(--shadow-sm);">
+        <style>
+          .privacy-section h3 { font-size: 1.05rem; font-weight: 700; color: #1F2937; margin: 1.5rem 0 0.6rem; padding-left: 0.6rem; border-left: 3px solid #10B981; }
+          .privacy-section h4 { font-size: 0.95rem; font-weight: 600; color: #374151; margin: 1rem 0 0.4rem; }
+          .privacy-section p, .privacy-section li { font-size: 0.9rem; color: #4B5563; line-height: 1.75; }
+          .privacy-section ul, .privacy-section ol { padding-left: 1.4rem; margin: 0.4rem 0; }
+          .privacy-section ul { list-style: disc; }
+          .privacy-section ol { list-style: decimal; }
+          .privacy-section table { width: 100%; border-collapse: collapse; margin: 0.6rem 0; font-size: 0.85rem; }
+          .privacy-section th, .privacy-section td { border: 1px solid #E5E7EB; padding: 0.55rem 0.7rem; text-align: left; }
+          .privacy-section th { background: #F9FAFB; font-weight: 600; color: #374151; }
+          .privacy-section .note { background: #FEF3C7; border-left: 3px solid #F59E0B; padding: 0.6rem 0.9rem; border-radius: 0.4rem; margin: 0.6rem 0; font-size: 0.85rem; }
+        </style>
+
+        <div class="privacy-section">
+          <p class="text-sm text-slate-600 leading-relaxed">
+            ${escapeHtml(orgName)}(이하 "기관")은 「개인정보 보호법」 제30조에 따라 정보주체의 개인정보를 보호하고
+            이와 관련한 고충을 신속하고 원활하게 처리할 수 있도록 다음과 같은 개인정보 처리방침을 수립·공개합니다.
+          </p>
+
+          <h3>제1조 (개인정보의 처리 목적)</h3>
+          <p>기관은 다음의 목적을 위하여 개인정보를 처리합니다. 처리한 개인정보는 다음의 목적 이외의 용도로는 이용되지 않으며, 이용 목적이 변경되는 경우에는 「개인정보 보호법」 제18조에 따라 별도의 동의를 받는 등 필요한 조치를 이행할 예정입니다.</p>
+          <ul>
+            <li><strong>온라인 상담문의 응대</strong>: 문의 내용 확인, 답변 회신, 본인 식별 및 인증</li>
+            <li><strong>서비스 품질 개선</strong>: 통계 분석 및 평가현황 안내</li>
+            <li><strong>법적 의무 이행</strong>: 관련 법령에 따른 보관 및 감사 대응</li>
+          </ul>
+
+          <h3>제2조 (처리하는 개인정보의 항목)</h3>
+          <p>기관은 다음의 개인정보 항목을 처리하고 있습니다.</p>
+          <table>
+            <thead>
+              <tr><th>수집 시점</th><th>수집 항목</th><th>수집 방법</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>온라인 상담문의 신청 시</td>
+                <td><strong>[필수]</strong> 이름, 문의 내용<br><strong>[선택]</strong> 이메일, 휴대전화번호, 회사명</td>
+                <td>홈페이지 입력</td>
+              </tr>
+              <tr>
+                <td>서비스 이용 과정</td>
+                <td>접속 IP, 쿠키, 접속일시, 서비스 이용기록</td>
+                <td>자동 수집</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="note"><i class="fas fa-info-circle mr-1"></i>
+            <strong>민감정보 및 고유식별정보는 일체 수집하지 않습니다.</strong>
+            (사상·신념, 노조 가입, 정치적 견해, 건강, 성생활, 주민등록번호 등 미수집)
+          </div>
+
+          <h3>제3조 (개인정보의 처리 및 보유 기간)</h3>
+          <ol>
+            <li>기관은 법령에 따른 개인정보 보유·이용 기간 또는 정보주체로부터 개인정보를 수집 시에 동의받은 개인정보 보유·이용기간 내에서 개인정보를 처리·보유합니다.</li>
+            <li>각각의 개인정보 처리 및 보유 기간은 다음과 같습니다.
+              <table style="margin-top:0.5rem;">
+                <thead><tr><th>처리 업무</th><th>보유 기간</th><th>근거</th></tr></thead>
+                <tbody>
+                  <tr><td>온라인 상담문의 기록</td><td><strong>3년</strong></td><td>「전자상거래법」 제6조 (계약·청약철회 등 기록)</td></tr>
+                  <tr><td>관리자 접속 기록 (감사 로그)</td><td><strong>1년 이상</strong></td><td>「개인정보의 안전성 확보조치 기준」 제8조</td></tr>
+                  <tr><td>자동 수집 (쿠키, 접속 IP)</td><td>세션 종료 시 또는 최대 1년</td><td>분석 및 보안</td></tr>
+                </tbody>
+              </table>
+            </li>
+            <li>보유 기간 경과 시 지체 없이(5일 이내) 복구·재생할 수 없는 방법으로 파기합니다.</li>
+          </ol>
+
+          <h3>제4조 (개인정보의 제3자 제공)</h3>
+          <p>기관은 정보주체의 개인정보를 제1조에서 명시한 목적 범위 내에서만 처리하며, 정보주체의 동의·법률의 특별한 규정 등 「개인정보 보호법」 제17조 및 제18조에 해당하는 경우에만 개인정보를 제3자에게 제공합니다.</p>
+          <p class="note"><i class="fas fa-shield-alt mr-1"></i><strong>현재 기관은 정보주체의 개인정보를 제3자에게 제공하고 있지 않습니다.</strong></p>
+
+          <h3>제5조 (개인정보 처리 위탁)</h3>
+          <p>기관은 원활한 개인정보 업무처리를 위하여 다음과 같이 개인정보 처리업무를 위탁하고 있습니다.</p>
+          <table>
+            <thead><tr><th>수탁 업체</th><th>위탁 업무</th><th>처리 위치</th></tr></thead>
+            <tbody>
+              <tr><td>Cloudflare, Inc.</td><td>웹사이트 호스팅, 데이터 저장(D1·R2), CDN</td><td>미국 (글로벌 엣지)</td></tr>
+            </tbody>
+          </table>
+          <p style="margin-top:0.5rem;">위탁계약 체결 시 「개인정보 보호법」 제26조에 따라 위탁업무 수행목적 외 개인정보 처리금지, 기술적·관리적 보호조치, 재위탁 제한, 수탁자에 대한 관리·감독, 손해배상 등 책임에 관한 사항을 계약서 등 문서에 명시하고, 수탁자가 개인정보를 안전하게 처리하는지를 감독하고 있습니다.</p>
+
+          <h3>제6조 (정보주체의 권리·의무 및 행사방법)</h3>
+          <ol>
+            <li>정보주체는 기관에 대해 언제든지 다음 각 호의 개인정보 보호 관련 권리를 행사할 수 있습니다.
+              <ul>
+                <li>개인정보 <strong>열람 요구</strong></li>
+                <li>오류 등이 있을 경우 <strong>정정 요구</strong></li>
+                <li><strong>삭제 요구</strong> (법령에서 보존 의무가 있는 경우는 제외)</li>
+                <li>개인정보 <strong>처리정지 요구</strong></li>
+                <li><strong>동의 철회</strong></li>
+              </ul>
+            </li>
+            <li>권리 행사는 본 처리방침 제9조 개인정보 보호책임자에게 서면, 전화, 전자우편 등을 통하여 할 수 있으며, 기관은 이에 대해 지체 없이 조치하겠습니다.</li>
+            <li>대리인을 통한 권리 행사 시 「개인정보 처리방법에 관한 고시」(제2020-7호) 별지 제11호 서식에 따른 위임장을 제출하셔야 합니다.</li>
+          </ol>
+
+          <h3>제7조 (개인정보의 파기 절차 및 방법)</h3>
+          <p>기관은 개인정보 보유기간의 경과, 처리목적 달성 등 개인정보가 불필요하게 되었을 때에는 지체 없이 해당 개인정보를 파기합니다.</p>
+          <ul>
+            <li><strong>파기 절차</strong>: 파기 사유가 발생한 개인정보를 선정하고, 개인정보 보호책임자의 승인을 받아 개인정보를 파기합니다.</li>
+            <li><strong>파기 방법</strong>:
+              <ul>
+                <li>전자적 파일: 복구 및 재생이 불가능한 방법으로 영구 삭제 (논리적 삭제 + 물리적 덮어쓰기)</li>
+                <li>인쇄물·서면: 분쇄기로 분쇄하거나 소각</li>
+              </ul>
+            </li>
+          </ul>
+
+          <h3>제8조 (개인정보의 안전성 확보 조치)</h3>
+          <p>기관은 개인정보의 안전성 확보를 위해 다음과 같은 조치를 취하고 있습니다.</p>
+          <ul>
+            <li><strong>관리적 조치</strong>: 내부관리계획 수립·시행, 개인정보 취급자 정기 교육</li>
+            <li><strong>기술적 조치</strong>:
+              <ul>
+                <li>개인정보처리시스템 등의 <strong>접근 권한 관리</strong> (관리자 ID/PW + JWT 인증)</li>
+                <li><strong>접근 통제 시스템</strong> 설치 (Cloudflare WAF, 비율 제한)</li>
+                <li>고유식별정보 등의 <strong>암호화</strong> (HTTPS/TLS 1.3 강제)</li>
+                <li>접속 기록 보관 및 위·변조 방지 (감사 로그 1년 이상)</li>
+                <li>보안프로그램 설치 (CSP, XSS·CSRF 방어)</li>
+                <li><strong>자동 백업</strong> (일/주/월 단위, SHA-256 무결성 검증)</li>
+              </ul>
+            </li>
+            <li><strong>물리적 조치</strong>: Cloudflare 데이터센터의 물리적 보안 및 출입 통제</li>
+          </ul>
+
+          <h3>제9조 (개인정보 보호책임자)</h3>
+          <p>기관은 개인정보 처리에 관한 업무를 총괄해서 책임지고, 개인정보 처리와 관련한 정보주체의 불만 처리 및 피해 구제 등을 위하여 아래와 같이 개인정보 보호책임자를 지정하고 있습니다.</p>
+          <table>
+            <tbody>
+              <tr><th style="width:30%;">개인정보 보호책임자</th><td>${escapeHtml(s.privacy_officer_name || '개인정보보호 담당자')}</td></tr>
+              <tr><th>소속·직위</th><td>${escapeHtml(s.privacy_officer_position || orgName + ' / 개인정보보호 담당')}</td></tr>
+              <tr><th>연락처</th><td>${escapeHtml(s.privacy_officer_phone || s.contact_phone || '-')}</td></tr>
+              <tr><th>이메일</th><td>${escapeHtml(s.privacy_officer_email || s.contact_email || '-')}</td></tr>
+            </tbody>
+          </table>
+
+          <h3>제10조 (개인정보의 열람청구 및 권익침해 구제방법)</h3>
+          <p>정보주체는 「개인정보 보호법」 제35조에 따른 개인정보 열람 청구를 본 처리방침 제9조의 개인정보 보호책임자에게 할 수 있습니다.</p>
+          <p>기타 개인정보침해에 대한 신고나 상담이 필요하신 경우에는 아래 기관에 문의하시기 바랍니다.</p>
+          <table>
+            <thead><tr><th>기관명</th><th>전화</th><th>홈페이지</th></tr></thead>
+            <tbody>
+              <tr><td>개인정보분쟁조정위원회</td><td>1833-6972 (국번없이)</td><td>www.kopico.go.kr</td></tr>
+              <tr><td>개인정보침해신고센터</td><td>118 (국번없이)</td><td>privacy.kisa.or.kr</td></tr>
+              <tr><td>대검찰청 사이버수사과</td><td>1301 (국번없이)</td><td>www.spo.go.kr</td></tr>
+              <tr><td>경찰청 사이버수사국</td><td>182 (국번없이)</td><td>ecrm.police.go.kr</td></tr>
+            </tbody>
+          </table>
+
+          <h3>제11조 (개인정보 처리방침의 변경)</h3>
+          <ol>
+            <li>이 개인정보처리방침은 시행일로부터 적용되며, 법령 및 방침에 따른 변경내용의 추가, 삭제 및 정정이 있는 경우에는 변경사항의 시행 7일 전부터 공지사항을 통하여 고지할 것입니다.</li>
+            <li>이 개인정보처리방침은 <strong>${today}</strong>부터 적용됩니다.</li>
+          </ol>
+
+          <div style="margin-top:2rem; padding-top:1.5rem; border-top:1px solid #E5E7EB; text-align:center;">
+            <p class="text-xs text-slate-400">
+              본 개인정보처리방침은 「개인정보 보호법」 제30조 및 관계 법령에 따라 작성되었습니다.<br>
+              최종 개정일: ${today} | 버전: v39.29
+            </p>
+            <a href="/support/inquiry" class="inline-block mt-3 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-sm font-medium transition">
+              <i class="fas fa-envelope mr-1"></i> 개인정보 관련 문의하기
+            </a>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>`;
+}

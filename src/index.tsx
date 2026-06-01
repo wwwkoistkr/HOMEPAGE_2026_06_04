@@ -19,7 +19,7 @@ import { homePage } from './templates/home';
 import { adminLoginPage, changePasswordContent, adminDashboardPage, adminDashboardContent } from './templates/admin/index';
 import { homeContentPage } from './templates/admin/home-content';
 import { backgroundMediaPage } from './templates/admin/background-media';
-import { servicePage, noticeListPage, noticeDetailPage, faqPage, inquiryPage, progressPage, serviceProgressContent, downloadsPage } from './templates/pages';
+import { servicePage, noticeListPage, noticeDetailPage, faqPage, inquiryPage, progressPage, serviceProgressContent, downloadsPage, privacyPolicyPage } from './templates/pages';
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -461,6 +461,19 @@ app.get('/support/documents', authMiddleware, async (c) => {
   c.header('Cache-Control', 'no-store, no-cache, must-revalidate, private');
   c.header('X-Robots-Tag', 'noindex, nofollow, noarchive');
   return c.html(layout({ settings, departments, isAdmin: !!c.get('isAdmin'), title: '시스템 문서 (관리자 전용)', content }));
+});
+
+// ═════════════════════════════════════════════════════════════════
+// Privacy Policy Page (v39.29 - 개인정보처리방침)
+// ═════════════════════════════════════════════════════════════════
+// 「개인정보 보호법」제30조에 따른 처리방침 의무 공개
+app.get('/privacy', async (c) => {
+  const db = c.env.DB;
+  const settings = await getSettings(db);
+  const departments = await getDepartmentsWithPages(db);
+
+  const content = privacyPolicyPage(settings);
+  return c.html(layout({ settings, departments, isAdmin: !!c.get('isAdmin'), title: '개인정보처리방침', content }));
 });
 
 // Downloads Page

@@ -13,6 +13,7 @@ import {
   getBackupStats,
   type BackupType,
 } from '../utils/backup';
+import { logAudit } from '../utils/audit';
 
 const admin = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -403,21 +404,79 @@ admin.delete('/faqs/:id', async (c) => {
   return c.json({ success: true });
 });
 
-// ---- Inquiries Management ----
+// ──────────────────────────────────────────────────────────────────
+// Inquiries Management (v39.29 - Soft Delete + 감사 로그)
+// ──────────────────────────────────────────────────────────────────
+// Phase 4에서 페이지네이션/검색/필터/정렬이 추가됨
 admin.get('/inquiries', async (c) => {
-  const result = await c.env.DB.prepare('SELECT * FROM inquiries ORDER BY created_at DESC').all();
+  // Soft-deleted 항목은 기본 조회에서 제외 (deleted_at IS NULL)
+  // include_deleted=true 쿼리로 휴지통 보기 가능
+  const includeDeleted = c.req.query('include_deleted') === 'true';
+  const whereClause = includeDeleted ? '1=1' : 'deleted_at IS NULL';
+  const result = await c.env.DB.prepare(
+    `SELECT * FROM inquiries WHERE ${whereClause} ORDER BY created_at DESC`
+  ).all();
   return c.json({ success: true, data: result.results });
 });
 
 admin.put('/inquiries/:id', async (c) => {
+  const id = c.req.param('id');
   const { admin_reply, status } = await c.req.json();
-  await c.env.DB.prepare('UPDATE inquiries SET admin_reply=?, status=?, replied_at=CURRENT_TIMESTAMP WHERE id=?').bind(admin_reply, status||'replied', c.req.param('id')).run();
+  await c.env.DB.prepare(
+    'UPDATE inquiries SET admin_reply=?, status=?, replied_at=CURRENT_TIMESTAMP WHERE id=?'
+  )
+    .bind(admin_reply, status || 'replied', id)
+    .run();
+  await logAudit(c, 'reply', `inquiry:${id}`, {
+    status: status || 'replied',
+    reply_length: (admin_reply || '').length,
+  });
   return c.json({ success: true });
 });
 
+// Soft Delete: deleted_at + deleted_by 만 채워 데이터 보존
+// 「개인정보 보호법」 제21조 (파기) 의무 대응을 위해 실제 파기는 별도 절차로 처리
 admin.delete('/inquiries/:id', async (c) => {
-  await c.env.DB.prepare('DELETE FROM inquiries WHERE id = ?').bind(c.req.param('id')).run();
-  return c.json({ success: true });
+  const id = c.req.param('id');
+  const adminUser = c.get('admin');
+  const username = adminUser?.username || 'unknown';
+  await c.env.DB.prepare(
+    `UPDATE inquiries SET deleted_at = CURRENT_TIMESTAMP, deleted_by = ? 
+     WHERE id = ? AND deleted_at IS NULL`
+  )
+    .bind(username, id)
+    .run();
+  await logAudit(c, 'soft-delete', `inquiry:${id}`, { method: 'soft', deleted_by: username });
+  return c.json({ success: true, message: '문의가 휴지통으로 이동되었습니다.' });
+});
+
+// 휴지통에서 복구
+admin.post('/inquiries/:id/restore', async (c) => {
+  const id = c.req.param('id');
+  await c.env.DB.prepare(
+    `UPDATE inquiries SET deleted_at = NULL, deleted_by = NULL WHERE id = ?`
+  )
+    .bind(id)
+    .run();
+  await logAudit(c, 'restore', `inquiry:${id}`, { method: 'soft-undelete' });
+  return c.json({ success: true, message: '문의가 복구되었습니다.' });
+});
+
+// 영구 삭제 (개인정보 파기) — soft-deleted 상태에서만 가능
+admin.delete('/inquiries/:id/permanent', async (c) => {
+  const id = c.req.param('id');
+  const row = await c.env.DB.prepare(
+    'SELECT id, deleted_at FROM inquiries WHERE id = ?'
+  )
+    .bind(id)
+    .first<{ id: number; deleted_at: string | null }>();
+  if (!row) return c.json({ error: '문의를 찾을 수 없습니다.' }, 404);
+  if (!row.deleted_at) {
+    return c.json({ error: '먼저 휴지통으로 이동(soft delete)한 뒤 영구 삭제할 수 있습니다.' }, 400);
+  }
+  await c.env.DB.prepare('DELETE FROM inquiries WHERE id = ?').bind(id).run();
+  await logAudit(c, 'delete', `inquiry:${id}`, { method: 'permanent' });
+  return c.json({ success: true, message: '문의가 영구 삭제되었습니다.' });
 });
 
 // ---- Downloads CRUD ----
@@ -713,29 +772,7 @@ function isValidExternalUrl(url: string): boolean {
 // 감사 로그(admin_audit_logs)에 모든 작업 기록
 // ═══════════════════════════════════════════════════════════════════
 
-/** 감사 로그 헬퍼 (Phase 3에서 본격 활용, Phase 2에서도 백업 동작 기록) */
-async function logAudit(
-  c: any,
-  action: string,
-  resource: string,
-  details?: Record<string, any>,
-  status: 'success' | 'failed' | 'denied' = 'success'
-) {
-  try {
-    const adminUser = c.get('admin');
-    const username = adminUser?.username || 'unknown';
-    const ip = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || '';
-    const ua = c.req.header('User-Agent') || '';
-    await c.env.DB.prepare(
-      `INSERT INTO admin_audit_logs (admin_username, action, resource, ip_address, user_agent, details, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
-    )
-      .bind(username, action, resource, ip, ua, details ? JSON.stringify(details) : null, status)
-      .run();
-  } catch (e) {
-    console.error('[audit] log failed:', e);
-  }
-}
+// logAudit는 '../utils/audit'에서 import (Phase 3에서 모듈로 분리)
 
 // ──────────────────────────────────────────────────────────────────
 // GET /api/admin/backups  → 백업 목록 + 통계

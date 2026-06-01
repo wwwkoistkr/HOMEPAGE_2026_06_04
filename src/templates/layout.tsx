@@ -454,6 +454,8 @@ export function layout(opts: {
           <span class="text-slate-700">|</span>
           <a href="/support/inquiry" class="hover:text-white transition-colors">문의하기</a>
           <span class="text-slate-700">|</span>
+          <a href="/privacy" class="font-bold text-emerald-400 hover:text-emerald-300 transition-colors"><i class="fas fa-user-shield mr-0.5" style="font-size:9px"></i>개인정보처리방침</a>
+          <span class="text-slate-700">|</span>
           <a href="/admin" class="hover:text-white transition-colors"><i class="fas fa-lock mr-0.5" style="font-size:8px"></i>관리자</a>
         </div>
       </div>
