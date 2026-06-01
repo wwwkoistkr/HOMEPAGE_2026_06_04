@@ -271,18 +271,49 @@ admin.get('/departments', async (c) => {
 });
 
 admin.post('/departments', async (c) => {
-  const { name, slug, description, icon, color, sort_order, image_url, header_bg_url, contact_dept, contact_name, contact_phone } = await c.req.json();
-  await c.env.DB.prepare('INSERT INTO departments (name, slug, description, icon, color, sort_order, image_url, header_bg_url, contact_dept, contact_name, contact_phone) VALUES (?,?,?,?,?,?,?,?,?,?,?)').bind(name, slug, description || '', icon || 'fa-shield-halved', color || '#3B82F6', sort_order || 0, image_url || '', header_bg_url || '', contact_dept || '', contact_name || '', contact_phone || '').run();
+  // v40.0: progress_meta, is_main_progress 필드 추가
+  const body = await c.req.json();
+  const { name, slug, description, icon, color, sort_order, image_url, header_bg_url, contact_dept, contact_name, contact_phone, progress_meta, is_main_progress } = body;
+  // progress_meta JSON 검증
+  let metaStr = '{}';
+  if (progress_meta !== undefined && progress_meta !== null) {
+    try {
+      metaStr = typeof progress_meta === 'string' ? progress_meta : JSON.stringify(progress_meta);
+      JSON.parse(metaStr);
+    } catch (e) {
+      return c.json({ error: 'Invalid progress_meta JSON' }, 400);
+    }
+  }
+  await c.env.DB.prepare('INSERT INTO departments (name, slug, description, icon, color, sort_order, image_url, header_bg_url, contact_dept, contact_name, contact_phone, progress_meta, is_main_progress) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(name, slug, description || '', icon || 'fa-shield-halved', color || '#3B82F6', sort_order || 0, image_url || '', header_bg_url || '', contact_dept || '', contact_name || '', contact_phone || '', metaStr, is_main_progress ? 1 : 0).run();
   return c.json({ success: true });
 });
 
 admin.put('/departments/:id', async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json();
-  const fields = ['name', 'slug', 'description', 'icon', 'color', 'sort_order', 'is_active', 'image_url', 'header_bg_url', 'contact_dept', 'contact_name', 'contact_phone', 'use_legacy_theme', 'english_subtitle'];
+  // v40.0: progress_meta, is_main_progress 필드 추가 (평가현황 카테고리 통합 관리)
+  const fields = ['name', 'slug', 'description', 'icon', 'color', 'sort_order', 'is_active', 'image_url', 'header_bg_url', 'contact_dept', 'contact_name', 'contact_phone', 'use_legacy_theme', 'english_subtitle', 'progress_meta', 'is_main_progress'];
   const updates: string[] = [];
   const values: any[] = [];
-  for (const f of fields) { if (body[f] !== undefined) { updates.push(`${f} = ?`); values.push(body[f]); } }
+  for (const f of fields) {
+    if (body[f] !== undefined) {
+      // v40.0: progress_meta는 JSON 유효성 검증
+      if (f === 'progress_meta' && body[f]) {
+        try {
+          // 객체로 들어오면 stringify, 문자열로 들어오면 파싱 검증
+          const meta = typeof body[f] === 'string' ? body[f] : JSON.stringify(body[f]);
+          JSON.parse(meta); // 유효성 검증
+          updates.push(`${f} = ?`);
+          values.push(meta);
+        } catch (e) {
+          return c.json({ error: 'Invalid progress_meta JSON' }, 400);
+        }
+      } else {
+        updates.push(`${f} = ?`);
+        values.push(body[f]);
+      }
+    }
+  }
   if (updates.length === 0) return c.json({ error: 'No fields' }, 400);
   values.push(id);
   await c.env.DB.prepare(`UPDATE departments SET ${updates.join(', ')} WHERE id = ?`).bind(...values).run();

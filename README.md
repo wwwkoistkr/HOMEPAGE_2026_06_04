@@ -1,10 +1,11 @@
-# KOIST Website v39.32
+# KOIST Website v40.0
 
-**(주)한국정보보안기술원** 공식 웹사이트 — **koist.kr 원본 디자인 완전 복제** (Scoped Legacy Theme) + **개인정보보호법 완전 준수 4-Phase 업그레이드**
+**(주)한국정보보안기술원** 공식 웹사이트 — **koist.kr 원본 디자인 완전 복제** (Scoped Legacy Theme) + **개인정보보호법 완전 준수 4-Phase 업그레이드** + **평가현황 카테고리 통합 관리**
 
 ## URLs
 - **Production**: https://koist-website.pages.dev (메인)
-- **v39.32 (Latest)**: 응급 백업/복원 + GFS 보존 정책 (비대칭 안전 UX)
+- **v40.0 (Latest)**: 평가현황 카테고리 통합 + departments 동적 로딩 + 4+1 카드 UI + 하이브리드 매트릭스
+- **v39.32**: 응급 백업/복원 + GFS 보존 정책 (비대칭 안전 UX)
 - **v39.31**: 외부 cron 백업 자동화 (`/api/cron/backup` 토큰 인증 엔드포인트)
 - **v39.30**: 엑셀 스타일 문의 관리 + 마스킹 + Excel/CSV 내보내기 + SheetJS
 - **v39.29**: 개인정보처리방침(/privacy) + Soft Delete + 감사 로그
@@ -28,6 +29,75 @@
 - **개인정보처리방침**: /privacy (v39.29)
 - **응급 백업 버튼**: 모든 /admin 페이지 우측 상단 (v39.32 — 1클릭 즉시 백업)
 - **자동 정리 엔드포인트**: `/api/cron/cleanup?token=...` (v39.32 — GFS 보존 정책)
+
+---
+
+## 📊 v40.0 — 평가현황 카테고리 통합 + 동적 관리 (2026-06-01)
+
+### 핵심 철학: **단일 진실 공급원 (Single Source of Truth)**
+> **"departments 테이블이 평가현황의 모든 카테고리·UI·옵션을 정의한다"**
+>
+> 기존: JS 하드코딩 `CATEGORIES` 상수 ⨯ DB `departments` 테이블 → **Two Worlds 문제**  
+> v40.0: DB `departments` 단일 소스 → **JS는 fetch 후 렌더링만 담당**
+
+### ① DB 마이그레이션 (`0055_v40_unify_categories.sql`)
+- `departments`에 두 컬럼 추가:
+  - `progress_meta TEXT DEFAULT '{}'` — 카테고리별 UI 메타 (컬럼명/옵션) JSON
+  - `is_main_progress INTEGER DEFAULT 0` — 4대 주요 카테고리 표시 플래그
+- **이름 통일**: `보안기능 시험` → `보안기능시험`, `암호모듈 검증시험` → `암호모듈검증`
+- **4대 주요 카테고리** (`is_main_progress=1`): CC평가 · 보안기능시험 · 성능평가 · 암호모듈검증
+- 각 카테고리에 컬럼명/옵션 메타 JSON 저장 (예: CC평가 → `{col2:"보증등급", col2Opts:[...], statusOpts:[...]}`)
+
+### ② 평가현황 UI: 4+1 카드 + 하이브리드 매트릭스
+**카드 그리드** (`grid-cols-2 sm:grid-cols-3 md:grid-cols-6`):
+- 전체 + 4대 카테고리 카드 + **기타 그룹** (= 6장)
+- 각 카드에 미니 매트릭스 표시: `접수 N · 진행 N · 완료 N`
+- 클릭 시 해당 카테고리 필터링
+
+**상세 매트릭스 표** (별도 섹션):
+- 카테고리별 접수/진행/완료 + **비율 진행바**
+- 상태 정규화: `'완료'` 포함 → 완료 / `'진행'` 포함 → 진행 / 그 외 → 접수
+
+### ③ Q1: 제품명·업체 정보 강조 (1.33배)
+- 제품명 · 업체를 **한 줄로 통합** (`text-base font-semibold`)
+- 등급/구분/유형은 기존 크기 유지 → **자연스러운 시각 위계**
+- 업체명은 회색(`text-gray-500 font-normal`) 처리하여 제품명 강조
+
+### ④ 관리자 모드 통합 편집 (admin-departments.js)
+사업분야 편집 시 **평가현황 메타까지 한 화면에서 관리**:
+- ✅ `is_main_progress` 체크박스 — 4대 카테고리 여부
+- 📝 `col2/col3/col4` 컬럼명 입력
+- 📝 `col2Opts/col3Opts/col4Opts` CSV 입력 (저장 시 자동 배열 변환)
+- 📝 `statusOpts` 상태 옵션 CSV
+- ✅ `col4FreeText` 체크박스 (자유 텍스트 입력 허용)
+- **JSON 안전성**: 서버측 `JSON.parse` 검증 + 클라이언트측 try-catch
+
+### ⑤ Two Worlds 문제 해결
+| Before (v39.x) | After (v40.0) |
+|----------------|---------------|
+| JS `CATEGORIES = {...}` 하드코딩 | `loadDepartments()` API fetch |
+| 카테고리 추가 시 코드 수정 | DB UPDATE 1회로 즉시 반영 |
+| `보안기능 시험` ≠ `보안기능시험` (오류) | 단일 정규화된 이름 |
+| 진행상태 옵션 4종 분산 | `progress_meta.statusOpts` 단일 소스 |
+
+### ⑥ "기타" 그룹 처리
+- `mainCategories.indexOf(p.category) < 0` 필터로 4대 외 모든 카테고리 자동 그룹핑
+- 데이터 누락 0%, 향후 카테고리 추가 시 자동 흡수
+
+### 변경 파일 (4)
+| 파일 | 변경 |
+|------|------|
+| `migrations/0055_v40_unify_categories.sql` | **신규** — 컬럼 추가 + 이름 통일 + 4대 메타 시드 |
+| `src/routes/admin.ts` | PUT/POST `/departments`에 `progress_meta`, `is_main_progress` 필드 추가 + JSON 검증 |
+| `public/static/js/admin-departments.js` | v40.0 평가현황 메타 편집 섹션 + `esc()` + CSV→배열 변환 |
+| `public/static/js/admin-progress.js` | **완전 재작성** (25KB) — 동적 로딩 + 4+1 카드 + 하이브리드 매트릭스 |
+
+### 검증 결과
+- ✅ 로컬 D1 마이그레이션: 10 commands 적용
+- ✅ 운영 D1 마이그레이션: 10 commands in 2.99ms
+- ✅ 4대 카테고리 모두 `is_main_progress=1`, `progress_meta` JSON 정상
+- ✅ `progress_items.category` ↔ `departments.name` LEFT JOIN: NULL 0건 (100% 매칭)
+- ✅ 4개 도메인 모두 HTTP 200 (www.koist.ai.kr / koist.ai.kr / koist-website.pages.dev / 541726eb.koist-website.pages.dev)
 
 ---
 
