@@ -1,10 +1,34 @@
-# KOIST Website v40.0
+# KOIST Website v40.1
 
 **(주)한국정보보안기술원** 공식 웹사이트 — **koist.kr 원본 디자인 완전 복제** (Scoped Legacy Theme) + **개인정보보호법 완전 준수 4-Phase 업그레이드** + **평가현황 카테고리 통합 관리**
 
+---
+
+> ## 🏢 사무실에서 작업 이어가기 (Quick Start)
+>
+> **현재 상태**: v40.1 안정 배포 완료 / Git working tree clean / 미커밋 없음
+>
+> ```bash
+> git pull origin main       # 최신 코드 가져오기
+> npm install                # 의존성
+> npm run build              # 빌드
+> pm2 start ecosystem.config.cjs   # 로컬 실행 (port 3000)
+> ```
+>
+> **반드시 읽을 문서** (총 30분):
+> 1. 📌 [`docs/HANDOFF_OFFICE_20260601.md`](docs/HANDOFF_OFFICE_20260601.md) — **사무실 인수인계** ⭐
+> 2. ✅ [`docs/V40_1_FINAL_VERIFICATION_REPORT_20260601.md`](docs/V40_1_FINAL_VERIFICATION_REPORT_20260601.md) — 정리 완료 검증
+> 3. 🔍 [`docs/V40_1_PROGRESS_UI_ANALYSIS_REPORT_20260601.md`](docs/V40_1_PROGRESS_UI_ANALYSIS_REPORT_20260601.md) — 문제·해결 분석
+>
+> **⚠️ 다음 JS/CSS 변경 시 반드시**: `src/index.tsx`의 `?v=40.1` → `?v=40.2`로 증가시킬 것!
+> (캐시 무효화, 잊으면 사용자 화면에 변경사항 안 보임)
+
+---
+
 ## URLs
 - **Production**: https://koist-website.pages.dev (메인)
-- **v40.0 (Latest)**: 평가현황 카테고리 통합 + departments 동적 로딩 + 4+1 카드 UI + 하이브리드 매트릭스
+- **v40.1 (Latest)**: 평가현황 UI 미세조정 (table-fixed + colgroup 30% + text-lg 1.5배 + 캐시 무효화)
+- **v40.0**: 평가현황 카테고리 통합 + departments 동적 로딩 + 4+1 카드 UI + 하이브리드 매트릭스
 - **v39.32**: 응급 백업/복원 + GFS 보존 정책 (비대칭 안전 UX)
 - **v39.31**: 외부 cron 백업 자동화 (`/api/cron/backup` 토큰 인증 엔드포인트)
 - **v39.30**: 엑셀 스타일 문의 관리 + 마스킹 + Excel/CSV 내보내기 + SheetJS
