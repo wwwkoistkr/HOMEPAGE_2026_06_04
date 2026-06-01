@@ -405,18 +405,200 @@ admin.delete('/faqs/:id', async (c) => {
 });
 
 // ──────────────────────────────────────────────────────────────────
-// Inquiries Management (v39.29 - Soft Delete + 감사 로그)
+// Inquiries Management (v39.30 - 엑셀 스타일 페이지네이션/검색/필터/정렬)
 // ──────────────────────────────────────────────────────────────────
-// Phase 4에서 페이지네이션/검색/필터/정렬이 추가됨
+// Query Parameters:
+//   - page          : 페이지 번호 (1부터, 기본 1)
+//   - per_page      : 페이지당 행 수 (기본 20, 최대 200)
+//   - search        : 통합 검색어 (name/email/phone/company/subject/message LIKE)
+//   - status        : 'pending' | 'replied' | '' (전체)
+//   - consent       : '1' | '0' | '' (동의 여부)
+//   - date_from     : YYYY-MM-DD 시작일
+//   - date_to       : YYYY-MM-DD 종료일
+//   - include_deleted : 'true' 면 휴지통 포함
+//   - deleted_only  : 'true' 면 휴지통만
+//   - sort_by       : id|created_at|name|status|subject (기본 created_at)
+//   - sort_dir      : asc|desc (기본 desc)
+//   - export        : 'true' 면 페이지네이션 없이 전체 반환 (감사 로그 기록)
 admin.get('/inquiries', async (c) => {
-  // Soft-deleted 항목은 기본 조회에서 제외 (deleted_at IS NULL)
-  // include_deleted=true 쿼리로 휴지통 보기 가능
-  const includeDeleted = c.req.query('include_deleted') === 'true';
-  const whereClause = includeDeleted ? '1=1' : 'deleted_at IS NULL';
-  const result = await c.env.DB.prepare(
-    `SELECT * FROM inquiries WHERE ${whereClause} ORDER BY created_at DESC`
-  ).all();
-  return c.json({ success: true, data: result.results });
+  const q = c.req.query.bind(c.req);
+
+  // 페이지네이션
+  const page = Math.max(1, parseInt(q('page') || '1') || 1);
+  const perPage = Math.min(200, Math.max(1, parseInt(q('per_page') || '20') || 20));
+  const isExport = q('export') === 'true';
+
+  // 검색/필터
+  const search = (q('search') || '').trim();
+  const status = (q('status') || '').trim();
+  const consent = (q('consent') || '').trim();
+  const dateFrom = (q('date_from') || '').trim();
+  const dateTo = (q('date_to') || '').trim();
+  const includeDeleted = q('include_deleted') === 'true';
+  const deletedOnly = q('deleted_only') === 'true';
+
+  // 정렬
+  const SORT_WHITELIST = new Set(['id', 'created_at', 'name', 'status', 'subject']);
+  let sortBy = q('sort_by') || 'created_at';
+  if (!SORT_WHITELIST.has(sortBy)) sortBy = 'created_at';
+  const sortDir = (q('sort_dir') || 'desc').toLowerCase() === 'asc' ? 'ASC' : 'DESC';
+
+  // WHERE 조건 구성
+  const conds: string[] = [];
+  const binds: any[] = [];
+
+  if (deletedOnly) {
+    conds.push('deleted_at IS NOT NULL');
+  } else if (!includeDeleted) {
+    conds.push('deleted_at IS NULL');
+  }
+
+  if (status === 'pending' || status === 'replied') {
+    conds.push('status = ?');
+    binds.push(status);
+  }
+
+  if (consent === '1' || consent === '0') {
+    conds.push('consent_personal_info = ?');
+    binds.push(parseInt(consent));
+  }
+
+  if (dateFrom) {
+    conds.push('created_at >= ?');
+    binds.push(dateFrom + ' 00:00:00');
+  }
+  if (dateTo) {
+    conds.push('created_at <= ?');
+    binds.push(dateTo + ' 23:59:59');
+  }
+
+  if (search) {
+    conds.push('(name LIKE ? OR email LIKE ? OR phone LIKE ? OR company LIKE ? OR subject LIKE ? OR message LIKE ?)');
+    const like = '%' + search + '%';
+    binds.push(like, like, like, like, like, like);
+  }
+
+  const whereClause = conds.length > 0 ? 'WHERE ' + conds.join(' AND ') : '';
+
+  // 전체 개수
+  const countRow = await c.env.DB.prepare(`SELECT COUNT(*) as cnt FROM inquiries ${whereClause}`)
+    .bind(...binds)
+    .first<{ cnt: number }>();
+  const total = countRow?.cnt || 0;
+
+  // 데이터 조회
+  let dataQuery = `SELECT * FROM inquiries ${whereClause} ORDER BY ${sortBy} ${sortDir}`;
+  const dataBinds = [...binds];
+  if (!isExport) {
+    const offset = (page - 1) * perPage;
+    dataQuery += ' LIMIT ? OFFSET ?';
+    dataBinds.push(perPage, offset);
+  }
+  const result = await c.env.DB.prepare(dataQuery).bind(...dataBinds).all();
+  const rows = result.results || [];
+
+  // export=true 인 경우 감사 로그 기록 (개인정보 대량 열람)
+  if (isExport) {
+    await logAudit(c, 'export', 'inquiries:list', {
+      count: rows.length,
+      filters: { search, status, consent, dateFrom, dateTo, includeDeleted, deletedOnly },
+    });
+  }
+
+  return c.json({
+    success: true,
+    data: rows,
+    pagination: {
+      page,
+      per_page: perPage,
+      total,
+      total_pages: Math.ceil(total / perPage),
+    },
+    filters: { search, status, consent, dateFrom, dateTo, includeDeleted, deletedOnly, sortBy, sortDir },
+  });
+});
+
+// 일괄 Soft Delete
+admin.post('/inquiries/bulk-delete', async (c) => {
+  const body = await c.req.json<{ ids?: number[]; permanent?: boolean }>().catch(() => ({}));
+  const ids = Array.isArray(body.ids) ? body.ids.filter((n) => Number.isFinite(n) && n > 0) : [];
+  if (ids.length === 0) {
+    return c.json({ error: '삭제할 ID 배열이 필요합니다.' }, 400);
+  }
+  if (ids.length > 500) {
+    return c.json({ error: '한 번에 최대 500개까지 삭제할 수 있습니다.' }, 400);
+  }
+
+  const adminUser = c.get('admin');
+  const username = adminUser?.username || 'unknown';
+  const permanent = body.permanent === true;
+  const placeholders = ids.map(() => '?').join(',');
+
+  if (permanent) {
+    // 영구 삭제: soft-deleted 상태에서만 가능
+    const eligible = await c.env.DB.prepare(
+      `SELECT id FROM inquiries WHERE id IN (${placeholders}) AND deleted_at IS NOT NULL`
+    )
+      .bind(...ids)
+      .all<{ id: number }>();
+    const eligibleIds = (eligible.results || []).map((r) => r.id);
+    if (eligibleIds.length === 0) {
+      return c.json(
+        { error: '영구 삭제 가능한 항목이 없습니다. 먼저 휴지통으로 이동(soft delete)해야 합니다.' },
+        400
+      );
+    }
+    const ePlaceholders = eligibleIds.map(() => '?').join(',');
+    await c.env.DB.prepare(`DELETE FROM inquiries WHERE id IN (${ePlaceholders})`)
+      .bind(...eligibleIds)
+      .run();
+    await logAudit(c, 'delete', `inquiries:bulk-permanent`, {
+      ids: eligibleIds,
+      count: eligibleIds.length,
+    });
+    return c.json({ success: true, deleted_count: eligibleIds.length, ids: eligibleIds });
+  } else {
+    // Soft Delete
+    await c.env.DB.prepare(
+      `UPDATE inquiries SET deleted_at = CURRENT_TIMESTAMP, deleted_by = ?
+       WHERE id IN (${placeholders}) AND deleted_at IS NULL`
+    )
+      .bind(username, ...ids)
+      .run();
+    await logAudit(c, 'soft-delete', `inquiries:bulk`, {
+      ids,
+      count: ids.length,
+    });
+    return c.json({ success: true, deleted_count: ids.length, ids });
+  }
+});
+
+// 일괄 복구
+admin.post('/inquiries/bulk-restore', async (c) => {
+  const body = await c.req.json<{ ids?: number[] }>().catch(() => ({}));
+  const ids = Array.isArray(body.ids) ? body.ids.filter((n) => Number.isFinite(n) && n > 0) : [];
+  if (ids.length === 0) return c.json({ error: '복구할 ID 배열이 필요합니다.' }, 400);
+
+  const placeholders = ids.map(() => '?').join(',');
+  await c.env.DB.prepare(
+    `UPDATE inquiries SET deleted_at = NULL, deleted_by = NULL WHERE id IN (${placeholders})`
+  )
+    .bind(...ids)
+    .run();
+  await logAudit(c, 'restore', `inquiries:bulk-restore`, { ids, count: ids.length });
+  return c.json({ success: true, restored_count: ids.length });
+});
+
+// v39.30: 마스킹 해제 감사로그 (개인정보 열람 기록)
+// 클라이언트에서 마스킹된 필드를 클릭해 일시 해제할 때 호출됨.
+// 「개인정보 보호법」 제29조 (안전조치 의무) 의 접근 기록 요구사항 대응.
+admin.post('/inquiries/:id/reveal', async (c) => {
+  const id = c.req.param('id');
+  let body: any = {};
+  try { body = await c.req.json(); } catch (_) {}
+  const field = String(body.field || 'unknown').substring(0, 32);
+  await logAudit(c, 'view', `inquiry:${id}:reveal`, { field });
+  return c.json({ success: true });
 });
 
 admin.put('/inquiries/:id', async (c) => {

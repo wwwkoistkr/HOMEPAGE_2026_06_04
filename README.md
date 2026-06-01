@@ -1,10 +1,14 @@
-# KOIST Website v39.23
+# KOIST Website v39.30
 
-**(주)한국정보보안기술원** 공식 웹사이트 — **koist.kr 원본 디자인 완전 복제** (Scoped Legacy Theme)
+**(주)한국정보보안기술원** 공식 웹사이트 — **koist.kr 원본 디자인 완전 복제** (Scoped Legacy Theme) + **개인정보보호법 완전 준수 4-Phase 업그레이드**
 
 ## URLs
 - **Production**: https://koist-website.pages.dev (메인)
-- **v39.23 (Latest)**: /services/readiness 깨진 p40 이미지 6개 처리 (FontAwesome 대체)
+- **v39.30 (Latest)**: 엑셀 스타일 문의 관리 + 마스킹 + Excel/CSV 내보내기 + SheetJS
+- **v39.29**: 개인정보처리방침(/privacy) + Soft Delete + 감사 로그
+- **v39.28**: 자동 백업 시스템 (Cron + R2 + 관리자 UI)
+- **v39.27**: 개인정보 수집·이용 동의 체크박스 + API 검증
+- **v39.23**: /services/readiness 깨진 p40 이미지 6개 처리 (FontAwesome 대체)
 - **v39.22**: 레거시 이미지 12종 → 10개 서비스 페이지 삽입
 - **v39.21**: HERO/SIM 위치 미세조정 + SIM 반투명도 HERO 동기화
 - **v39.20**: HERO↔SIMULATOR 좌우 교체 + 시뮬레이터 패널 70% 불투명 (Glassmorphism)
@@ -15,6 +19,88 @@
 - **관리자**: /admin
 - **사업분야 관리**: /admin/departments (v39.7에서 **원본 디자인 토글** + 영문 서브타이틀 + WYSIWYG)
 - **슬라이더 UI 설정**: /admin/slider-settings (v39.4)
+- **백업 관리**: /admin/backups (v39.28 — 자동/수동 백업, 복원, 검증)
+- **상담문의 관리**: /admin/inquiries (v39.30 — 엑셀 스타일, 마스킹, 내보내기)
+- **개인정보처리방침**: /privacy (v39.29)
+
+---
+
+## 🔐 v39.30 — 엑셀 스타일 문의 관리 + 마스킹 + Excel/CSV 내보내기 (2026-06-01)
+
+### 핵심 변경
+1. **엑셀 스타일 테이블**: 정렬 가능 컬럼 (id/created_at/name/status/subject), 서버 사이드 페이지네이션 (25/50/100/200건)
+2. **고급 검색·필터**: 이름·이메일·제목·내용 통합 검색, 상태/동의/날짜 범위 필터
+3. **개인정보 마스킹** (기본 ON):
+   - 이메일: `a***@example.com`
+   - 전화: `010-****-5678`
+   - 이름: `김*수`
+   - 클릭 시 5초간 표시 후 자동 재마스킹
+   - 마스킹 해제 시 감사 로그(`view`) 자동 기록 — 「개인정보 보호법」 제29조 (안전조치 의무) 대응
+4. **벌크 선택**: 체크박스 다중 선택 → 일괄 휴지통 이동 / 일괄 복구 / 일괄 영구삭제 (최대 500건/회)
+5. **Excel/CSV 내보내기**:
+   - SheetJS 0.18.5 자체 호스팅 (`/static/lib/xlsx.full.min.js`, 862KB) — 오프라인 작동
+   - CSV는 UTF-8 BOM 포함 (Excel 한글 호환)
+   - 컬럼 너비 자동 조정 (.xlsx)
+   - `export=true` 호출 시 서버에 감사로그 자동 기록
+
+### 신규 API
+- `GET /api/admin/inquiries?page=&per_page=&search=&status=&consent=&date_from=&date_to=&sort_by=&sort_dir=&include_deleted=&deleted_only=&export=` — 완전한 쿼리 API (SORT_WHITELIST로 SQL 인젝션 방지)
+- `POST /api/admin/inquiries/bulk-delete` — 일괄 soft/permanent 삭제
+- `POST /api/admin/inquiries/bulk-restore` — 일괄 복구
+- `POST /api/admin/inquiries/:id/reveal` — 마스킹 해제 감사로그
+
+### 파일
+- `public/static/js/admin-inquiries.js` (재작성, ~530줄)
+- `public/static/lib/xlsx.full.min.js` (신규, 862KB)
+- `src/routes/admin.ts` (페이지네이션 + bulk + reveal 라우트 추가)
+- `src/index.tsx` (inquiries 페이지에만 SheetJS 조건부 로드)
+
+---
+
+## 📜 v39.29 — 개인정보처리방침 + Soft Delete + 감사 로그 (2026-06-01)
+
+### 핵심 변경
+1. **개인정보처리방침 페이지** (`/privacy`) — 11개 조항, 「개인정보 보호법」 제30조 (개인정보 처리방침의 수립·공개) 완전 대응
+2. **푸터 링크** — 강조 표시 (`font-bold text-emerald-400`)
+3. **Soft Delete 패턴** — 즉시 삭제 → `deleted_at` + `deleted_by` 마킹으로 변경, 휴지통에서 복구/영구삭제 가능
+4. **감사 로그** (`src/utils/audit.ts`) — login/logout/view/create/update/delete/soft-delete/restore/export/backup/reply/password-change 12개 액션 기록
+
+### 신규 모듈
+- `src/utils/audit.ts` (62줄) — `logAudit(c, action, resource, details?, status?)` 헬퍼
+
+---
+
+## 💾 v39.28 — 자동 백업 시스템 (2026-06-01)
+
+### 핵심 변경
+1. **Cloudflare Cron Triggers** (무료 티어) — 3개 스케줄:
+   - daily: 매일 03:00 KST (UTC 18:00)
+   - weekly: 매주 일요일 04:00 KST
+   - monthly: 매월 2일 05:00 KST
+2. **R2 저장** (`koist-images` 버킷) — gzip 압축 + SHA-256 무결성 검증
+3. **백업 형식**: `koist-backup-v1` JSON (테이블 schema + indexes + columns + rows + sql_restore 문자열)
+4. **보존 정책**: daily 7일 / weekly 28일 / monthly 365일 / manual 영구 / pre-restore 30일
+5. **5-레이어 안전 복원** — 복원 전 자동 pre-restore 백업 → 트랜잭션 → 검증 → 롤백 가능
+6. **관리자 UI** (`/admin/backups`) — 통계 대시보드, 백업 생성/다운로드/검증/복원/삭제, 521줄
+
+### 신규 모듈
+- `src/utils/backup.ts` (478줄) — `createBackup`, `restoreFromBackup`, `verifyBackupIntegrity`, `listBackups`, `getBackupFile`, `deleteBackup`, `getBackupStats`, `gzipDecompress`
+
+### 3-2-1 백업 전략 준수
+- **3 copies**: D1 본체 + 자동 백업 + 수동 백업
+- **2 locations**: D1 (Cloudflare 글로벌) + R2 (다른 서비스)
+- **1 offsite**: 수동 다운로드한 JSON.gz를 외부 저장 가능
+
+---
+
+## ✅ v39.27 — 개인정보 수집·이용 동의 체크박스 (2026-06-01)
+
+### 핵심 변경
+1. **상담 문의 폼 체크박스** — 「개인정보 보호법」 제15조 (개인정보의 수집·이용) 대응
+2. **서버 측 강제 검증** — `consent_personal_info: 1` 없으면 400 응답
+3. **DB 마이그레이션 `0054`** — `consent_personal_info`, `consent_at`, `deleted_at`, `deleted_by` 컬럼 + `admin_audit_logs` / `backup_history` 테이블
+
+---
 
 ## 🛠️ v39.23 — /services/readiness 깨진 p40 이미지 6개 처리 (2026-04-27)
 

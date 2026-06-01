@@ -631,11 +631,14 @@ for (const page of adminPages) {
     const db = c.env.DB;
     const settings = await getSettings(db);
     const jsFile = page === 'about' ? 'admin-about' : page === 'sim-cert-types' ? 'admin-sim-cert-types' : `admin-${page}`;
+    // v39.30: inquiries 페이지에서만 SheetJS 로드 (Excel 내보내기용, 862KB)
+    const xlsxScript = page === 'inquiries' ? '<script src="/static/lib/xlsx.full.min.js"></script>' : '';
     const content = `
       <h1 class="text-2xl font-bold text-gray-800 mb-6">${getAdminPageTitle(page)}</h1>
       <div id="admin-content" class="bg-white rounded-xl border border-gray-100 p-6">
         <p class="text-gray-400"><i class="fas fa-spinner fa-spin mr-1"></i> 데이터를 불러오는 중...</p>
       </div>
+      ${xlsxScript}
       <script src="/static/js/admin-fetch.js"></script>
       <script src="/static/js/${jsFile}.js"></script>
     `;
