@@ -1,0 +1,62 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "koist-website",
+  "compatibility_date": "2026-04-09",
+  "pages_build_output_dir": "./dist",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "koist-website-db",
+      "database_id": "91f1eb2f-e9fa-45e8-8bea-4958ce74727a"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2",
+      "bucket_name": "koist-images"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "RATE_LIMIT_KV",
+      "id": "fbcb2694a1194b4db04ae74c574fb51b"
+    }
+  ],
+  // ───────────────────────────────────────────────────────────────
+  // Cron Triggers (v39.28 Phase 2 - 자동 백업)
+  // ───────────────────────────────────────────────────────────────
+  // 시간: 모두 UTC 기준. KST = UTC + 9시간
+  //   - daily   : 매일 18:00 UTC = 다음날 03:00 KST
+  //   - weekly  : 매주 토요일 19:00 UTC = 일요일 04:00 KST
+  //   - monthly : 매월 말일 20:00 UTC ≒ 1일 05:00 KST
+  //               (정확한 "매월 1일 05:00 KST"는 "매월 1일 20:00 UTC"가 정답이지만,
+  //                Cron은 UTC 기준이라 "0 20 1 * *"로 표기 → 1일 20:00 UTC = 2일 05:00 KST)
+  //   ※ 실제 사용 시간을 KST 03~05시로 맞추기 위해 다음과 같이 설정:
+  //
+  //   daily   : "0 18 * * *"   → 매일 03:00 KST
+  //   weekly  : "0 19 * * 6"   → 매주 일요일 04:00 KST (토요일 19:00 UTC)
+  //   monthly : "0 20 28-31 * *" → 매월 말일 ~ 다음달 1일 05:00 KST
+  //             간소화: "0 20 1 * *" = 매월 2일 05:00 KST (실용적 타협)
+  //
+  // Cloudflare Pages 무료 플랜: Cron Triggers 사용 가능, 월 100,000 호출 한도
+  //
+  // ⚠️ 주의: Cloudflare Pages는 wrangler.jsonc의 "triggers" 필드를 지원하지 않습니다.
+  //         (Pages projects does not support "triggers")
+  //         Pages용 Cron은 Cloudflare 대시보드 또는 별도 Worker로 설정해야 합니다.
+  //
+  // 대안:
+  //   1) Cloudflare Dashboard → Workers & Pages → koist-website → Settings → Functions → Cron Triggers
+  //   2) 또는 별도 Worker(scheduled handler 전용)를 만들어 본 Pages의 /api/admin/backups POST를 호출
+  //   3) 또는 외부 cron 서비스 (cron-job.org 등)로 webhook 호출
+  //
+  // scheduled handler 코드는 src/index.tsx 에 유지 (Pages가 Cron Triggers를 지원하면 자동 활성화)
+  // ───────────────────────────────────────────────────────────────
+  // "triggers": {
+  //   "crons": [
+  //     "0 18 * * *",
+  //     "0 19 * * 6",
+  //     "0 20 1 * *"
+  //   ]
+  // }
+}
