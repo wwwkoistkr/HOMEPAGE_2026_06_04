@@ -26,7 +26,7 @@
 
 > ## 🏢 사무실에서 작업 이어가기 (Quick Start)
 >
-> **현재 상태**: v40.3 — 연청 테마 + 관리자 디자인 관리 + 푸터 가독성(A안) `main` 머지 완료 / Cloudflare Pages 배포
+> **현재 상태**: v40.3 — 연청 테마 + 관리자 디자인 관리 + 푸터 가독성(A안) ✅ Cloudflare Pages 배포 완료 (2026-06-02, deploy `a16cfc35`) / `main` 반영 / 운영 도메인 koist.ai.kr·www.koist.kr 적용 확인
 >
 > ```bash
 > git pull origin main       # 최신 코드 가져오기
