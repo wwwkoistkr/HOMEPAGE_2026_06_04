@@ -1,6 +1,6 @@
-# KOIST Website v40.2
+# KOIST Website v40.3
 
-**(주)한국정보보안기술원** 공식 웹사이트 — **koist.kr 원본 디자인 완전 복제** + **평가현황/시험현황 컬럼 폭 최적화** + **개인정보보호법 완전 준수**
+**(주)한국정보보안기술원** 공식 웹사이트 — **koist.kr 원본 디자인 완전 복제** (Scoped Legacy Theme) + **개인정보보호법 완전 준수 4-Phase 업그레이드** + **평가현황 카테고리 통합 관리** + **연청(라이트블루) 동적 테마 & 관리자 디자인 관리**
 
 ---
 
@@ -26,7 +26,7 @@
 
 > ## 🏢 사무실에서 작업 이어가기 (Quick Start)
 >
-> **현재 상태**: v40.2 안정 배포 완료 / Git working tree clean / 미커밋 없음
+> **현재 상태**: v40.3 — 연청 테마 + 관리자 디자인 관리 + 푸터 가독성(A안) `main` 머지 완료 / Cloudflare Pages 배포
 >
 > ```bash
 > git pull origin main       # 최신 코드 가져오기
@@ -47,7 +47,10 @@
 
 ## URLs
 - **Production**: https://koist-website.pages.dev (메인)
-- **v40.1 (Latest)**: 평가현황 UI 미세조정 (table-fixed + colgroup 30% + text-lg 1.5배 + 캐시 무효화)
+- **로컬 개발**: https://3000-i0chksvz2v05lxmcn60fh-3c7ff1b5.sandbox.novita.ai (port 3000, PM2)
+- **v40.3 (Latest)**: 연청(라이트블루) 동적 테마 + 관리자 디자인 관리 + 상담문의 5가지 디자인 개선
+- **v40.2**: 평가현황/시험현황 등급·구분 컬럼 폭 확대 + 별칭 매핑 + 상담문의 폼 개선(동의 기본체크/링크 한줄/입력창 가독성)
+- **v40.1**: 평가현황 UI 미세조정 (table-fixed + colgroup 30% + text-lg 1.5배 + 캐시 무효화)
 - **v40.0**: 평가현황 카테고리 통합 + departments 동적 로딩 + 4+1 카드 UI + 하이브리드 매트릭스
 - **v39.32**: 응급 백업/복원 + GFS 보존 정책 (비대칭 안전 UX)
 - **v39.31**: 외부 cron 백업 자동화 (`/api/cron/backup` 토큰 인증 엔드포인트)
@@ -73,6 +76,63 @@
 - **개인정보처리방침**: /privacy (v39.29)
 - **응급 백업 버튼**: 모든 /admin 페이지 우측 상단 (v39.32 — 1클릭 즉시 백업)
 - **자동 정리 엔드포인트**: `/api/cron/cleanup?token=...` (v39.32 — GFS 보존 정책)
+- **디자인 테마 관리**: /admin/background-media → "디자인 테마 (연청 컬러)" 섹션 (v40.3 — 전역/GNB/헤더/푸터/입력창/상담문의 레이아웃 컬러·치수 편집)
+- **상담문의 폼**: /support/inquiry (v40.3 — 헤더 배너 30% 축소 + 타이틀 폼카드 통합 + 연청 입력창)
+
+---
+
+## 🎨 v40.3 — 연청(라이트블루) 동적 테마 + 관리자 디자인 관리 (2026-06-02)
+
+### 핵심 철학: **하드코딩 컬러 제거 → 단일 진실 공급원(site_settings) 기반 동적 테마**
+> 이전(v40.2): 관리자 색상 UI는 있으나 CSS에 색상이 **하드코딩**되어 저장해도 화면 미반영 (두 세계 단절)
+> v40.3: `layoutCSS(settings)` → `themeVars()`가 `:root`에 **CSS 변수 주입** → 관리자가 저장한 색상이 즉시 전역 반영
+
+### ① 동적 테마 엔진 (`src/templates/partials/layout-css.ts`)
+- `themeVars(settings)` 헬퍼 신규: site_settings 값을 검증 후 CSS 변수로 변환
+- **CSS 인젝션 방지**: 색상값을 `#hex` / `rgb(a)` / 영문 컬러명 화이트리스트 정규식으로 검증, 미통과 시 연청 기본값 폴백
+- `layoutCSS()` → `layoutCSS(settings?)` 시그니처 변경, `:root`에 `${themeVars(settings)}` 주입
+- `.gnb-nav-bar`, `.input-premium` 모두 하드코딩 → CSS 변수(연청) 사용
+
+### ② DB 마이그레이션 (`migrations/0056_v403_lightblue_theme_settings.sql`)
+- **`INSERT OR IGNORE`로 신규 키 사전 생성** (관리자 PUT API가 `UPDATE`-only이므로 키가 미리 존재해야 저장 가능)
+- 연청 팔레트 기본값:
+  | 키 | 기본값 | 용도 |
+  |---|---|---|
+  | `theme_primary` / `accent_color` / `theme_cyan` | `#2563EB` / `#3B82F6` / `#06B6D4` | 전역 포인트 컬러 |
+  | `gnb_bar_color1/2` | `#2563EB` / `#3B82F6` | GNB 메뉴바 그라데이션 |
+  | `page_header_color1/2/3` | `#1E3A8A` / `#2563EB` / `#3B82F6` | 페이지 헤더 배너 |
+  | `page_header_height_scale` | `0.3` | 헤더 배너 높이 비율(30%) |
+  | `footer_color1/2` | `#1E3A8A` / `#1E40AF` | 푸터 그라데이션 |
+  | `input_bg/border/focus_color` | `#F0F7FF` / `#BFDBFE` / `#3B82F6` | 입력창 연청 톤 |
+  | `inquiry_section_pad_scale` | `0.7` | 상담문의 섹션 상하 패딩(70%) |
+  | `inquiry_max_width` | `1200` | 상담문의 좌우 폭(px) |
+
+### ③ 5가지 디자인 개선
+1. **페이지 헤더 배너**: 높이 30% 축소(`page_header_height_scale`) + 타이틀을 폼 카드(흰 카드) 내부로 통합 (모던 레이아웃, 아이콘 그라데이션)
+2. **`main` padding-top**: `var(--gnb-h)` **의도적 미변경** (레이아웃 깨짐 방지)
+3. **상담문의 섹션**: 상하 패딩 ~30% 축소 + 좌우 `max-width 1200px`로 ~50% 확장
+4. **푸터**: 하단 밀착(`margin-top:0`) + 다크네이비 → 연청 그라데이션 (전역 톤 변경)
+5. **입력창**: 연청 틴트(`#F0F7FF`) + `color-mix` 기반 focus glow 강화
+
+### ④ 관리자 디자인 관리 UI (`src/templates/admin/background-media.tsx`)
+- 기존 배경/미디어 페이지에 **"디자인 테마 (연청 컬러)"** 섹션 추가
+- 6개 하위 그룹: 전역 포인트 / GNB 메뉴바 / 페이지 헤더 배너(+높이) / 푸터 / 입력창 / 상담문의 레이아웃(패딩·폭)
+- 기존 `setting-input` / `data-key` / `data-color-for` 패턴 재사용 → 기존 로드/저장/컬러피커 동기화 로직 그대로 작동
+
+### 변경 파일 (5)
+| 파일 | 변경 |
+|---|---|
+| `src/templates/partials/layout-css.ts` | `themeVars()` 추가 + `layoutCSS(settings)` + 연청 CSS 변수 |
+| `src/templates/layout.tsx` | `layoutCSS(s)` 호출 + 푸터 변수화/하단밀착 (main padding 미변경) |
+| `src/templates/pages.tsx` | `pageHeader()` 높이 스케일 + `inquiryPage()` 패딩/폭/타이틀 통합 |
+| `src/templates/admin/background-media.tsx` | "디자인 테마" 관리 섹션 |
+| `migrations/0056_v403_lightblue_theme_settings.sql` | 신규 테마 키 INSERT OR IGNORE |
+
+### 검증 결과
+- `npm run build` SUCCESS (`dist/_worker.js 506.38 kB`)
+- migration 0056 적용 완료 (로컬 17 commands)
+- 렌더 HTML에 DB 테마 변수 주입 확인: `--page-header-c1: #1E3A8A`, `--gnb-bar-c1: #2563EB`, `--input-bg: #F0F7FF`
+- `/support/inquiry`, `/` HTTP 200 (콘솔 에러는 Google Ads CSP 차단 무관)
 
 ---
 

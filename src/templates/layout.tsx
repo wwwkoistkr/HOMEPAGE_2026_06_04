@@ -110,7 +110,7 @@ export function layout(opts: {
   <!-- v39.7: KOIST Legacy Theme + v39.6 service-section styles (Scoped to /services/*) -->
   <link href="/static/style.css" rel="stylesheet">
 
-  ${layoutCSS()}
+  ${layoutCSS(s)}
   ${opts.headExtra || ''}
 </head>
 <body class="bg-surface text-slate-700 antialiased">
@@ -371,9 +371,13 @@ export function layout(opts: {
     const bgUrl = s.footer_bg_url || '';
     const safeBgUrl = bgUrl && !/[<>"'`\\\n\r]/.test(bgUrl) && !/\*\/|\/\*/.test(bgUrl) ? bgUrl : '';
     const footerBg = safeBgUrl
-      ? `background-image: linear-gradient(rgba(10,15,30,0.95), rgba(7,11,22,0.98)), url('${escapeAttr(safeBgUrl)}'); background-size:cover; background-position:center;`
-      : 'background: linear-gradient(180deg, #0C1120 0%, #080D18 50%, #060A14 100%);';
-    return `<footer role="contentinfo" class="text-gray-400 mt-auto relative overflow-hidden" style="${footerBg}">`;
+      ? `background-image: linear-gradient(rgba(30,58,138,0.93), rgba(30,64,175,0.96)), url('${escapeAttr(safeBgUrl)}'); background-size:cover; background-position:center;`
+      : 'background: linear-gradient(180deg, var(--footer-c1) 0%, var(--footer-c2) 100%);';
+    // v40.3: section 하단 밀착 (mt-auto 유지하되 위쪽 여백 제거)
+    // v40.3.1 A안: 밝은 연청 배경 → 진한 남색 글자(var(--footer-text)) 기본색 지정
+    // 배경 이미지를 쓰는 경우(어두운 오버레이)에는 흰 글자 유지
+    const footerTextColor = safeBgUrl ? '#cbd5e1' : 'var(--footer-text)';
+    return `<footer role="contentinfo" class="site-footer mt-auto relative overflow-hidden" data-has-bg="${safeBgUrl ? '1' : '0'}" style="${footerBg} margin-top:0; color:${footerTextColor};">`;
   })()}
     <!-- Top accent line -->
     <div style="height: 2px; background: linear-gradient(90deg, transparent 5%, #2563EB 25%, #06B6D4 50%, #3B82F6 75%, transparent 95%); opacity: 0.8;"></div>

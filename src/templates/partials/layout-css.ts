@@ -1,7 +1,68 @@
 // KOIST Layout Partial - CSS Design System
 // Extracted from layout.tsx for maintainability
 
-export function layoutCSS(): string {
+/**
+ * 디자인 테마 컬러 — 관리자(site_settings)에서 관리 가능.
+ * 값이 비어있으면 연청(Light Blue) 팔레트 기본값으로 폴백한다.
+ * v40.3: 관리자 컬러 설정 ↔ 실제 렌더링 연결 복구 + 전체 톤 연청 전환
+ */
+function themeVars(settings?: Record<string, any>): string {
+  const s = settings || {};
+  // 안전한 컬러 값만 통과 (CSS 인젝션 방지): #hex / rgb()/rgba() / 영문 키워드
+  const safe = (v: any, fallback: string): string => {
+    if (typeof v !== 'string') return fallback;
+    const t = v.trim();
+    if (!t) return fallback;
+    if (/^#[0-9A-Fa-f]{3,8}$/.test(t)) return t;
+    if (/^rgba?\(\s*[\d.,\s%]+\)$/.test(t)) return t;
+    if (/^[a-zA-Z]+$/.test(t)) return t;
+    return fallback;
+  };
+  // ── 연청(Light Blue) 팔레트 기본값 ──
+  const themePrimary   = safe(s.theme_primary,   '#2563EB'); // 로열블루
+  const themeAccent    = safe(s.accent_color,    '#3B82F6'); // 브라이트블루
+  const themeCyan      = safe(s.theme_cyan,      '#06B6D4'); // 시안 포인트
+  // 페이지 헤더 배너 그라데이션 (3색)
+  const phc1 = safe(s.page_header_color1, '#1E3A8A');
+  const phc2 = safe(s.page_header_color2, '#2563EB');
+  const phc3 = safe(s.page_header_color3, '#3B82F6');
+  // 푸터 그라데이션 (2색) — v40.3.1 A안: 밝은 연청 배경
+  const ftc1 = safe(s.footer_color1, '#E8F2FF'); // 연청 라이트
+  const ftc2 = safe(s.footer_color2, '#D6E9FF'); // 연청 라이트(약간 진함)
+  // 푸터 글자색 (밝은 배경용 진한 남색 계열) — v40.3.1 A안
+  const ftText    = safe(s.footer_text_color,    '#1E3A8A'); // 본문 진한 네이비
+  const ftHeading = safe(s.footer_heading_color, '#0F172A'); // 소제목 거의 검정 네이비
+  const ftMuted   = safe(s.footer_muted_color,   '#475569'); // 보조/카피라이트 슬레이트
+  const ftHover   = safe(s.footer_hover_color,   '#1D4ED8'); // hover 블루
+  // GNB 메뉴바 그라데이션 (2색)
+  const gnbc1 = safe(s.gnb_bar_color1, '#2563EB');
+  const gnbc2 = safe(s.gnb_bar_color2, '#3B82F6');
+  // 입력창
+  const inputBg     = safe(s.input_bg_color,     '#F0F7FF');
+  const inputBorder = safe(s.input_border_color, '#BFDBFE');
+  const inputFocus  = safe(s.input_focus_color,  '#3B82F6');
+  return `
+      /* ── Theme Colors (관리자 가변 / 연청 기본값) v40.3 ── */
+      --theme-primary: ${themePrimary};
+      --theme-accent: ${themeAccent};
+      --theme-cyan: ${themeCyan};
+      --page-header-c1: ${phc1};
+      --page-header-c2: ${phc2};
+      --page-header-c3: ${phc3};
+      --footer-c1: ${ftc1};
+      --footer-c2: ${ftc2};
+      --footer-text: ${ftText};
+      --footer-heading: ${ftHeading};
+      --footer-muted: ${ftMuted};
+      --footer-hover: ${ftHover};
+      --gnb-bar-c1: ${gnbc1};
+      --gnb-bar-c2: ${gnbc2};
+      --input-bg: ${inputBg};
+      --input-border: ${inputBorder};
+      --input-focus: ${inputFocus};`;
+}
+
+export function layoutCSS(settings?: Record<string, any>): string {
   return `
   <style>
     /* ═══════════════════════════════════════════════════════════════════
@@ -69,6 +130,7 @@ export function layoutCSS(): string {
       --grad-glass-dark: linear-gradient(135deg, rgba(15,23,42,0.90), rgba(15,23,42,0.96));
       --grad-surface: linear-gradient(180deg, #F0F4F8 0%, #F8FAFC 50%, #FFFFFF 100%);
       --grad-card-shine: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%, rgba(255,255,255,0.02) 100%);
+      ${themeVars(settings)}
     }
 
     /* ── R2: Reduced Motion (WCAG 2.1 Level AAA) ── */
@@ -325,7 +387,7 @@ export function layoutCSS(): string {
       .glass-light { background: rgba(255,255,255,0.95); border: 1px solid rgba(226,232,240,0.60); }
       .glass-card { background: rgba(255,255,255,0.98); border: 1px solid rgba(226,232,240,0.50); }
       #gnb.gnb-scrolled { background: rgba(10,15,30,0.97) !important; }
-      .gnb-nav-bar { background: linear-gradient(90deg, #0C2D6B, #1E40AF, #0C2D6B) !important; }
+      .gnb-nav-bar { background: linear-gradient(90deg, var(--gnb-bar-c1), var(--gnb-bar-c2), var(--gnb-bar-c1)) !important; }
       .popup-overlay { background: rgba(0,0,0,0.65) !important; }
       .btn-ghost { background: rgba(255,255,255,0.08); }
       .hero-contact-card { background: rgba(10,15,30,0.90) !important; border: 1px solid rgba(255,255,255,0.10) !important; }
@@ -451,7 +513,7 @@ export function layoutCSS(): string {
     /* ── GNB Navigation Bar (eye-catching accent bar) ── */
     .gnb-nav-bar {
       height: var(--gnb-bar-h);
-      background: linear-gradient(90deg, #0C2D6B 0%, #1E40AF 25%, #1D4ED8 50%, #1E40AF 75%, #0C2D6B 100%);
+      background: linear-gradient(90deg, var(--gnb-bar-c1) 0%, var(--gnb-bar-c2) 25%, var(--gnb-bar-c2) 50%, var(--gnb-bar-c2) 75%, var(--gnb-bar-c1) 100%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1110,25 +1172,64 @@ export function layoutCSS(): string {
     /* ═══════════════════════════════════════════════
        ENHANCED FORM INPUTS
        ═══════════════════════════════════════════════ */
+    /* v40.3: 연청 틴트 입력창 (관리자 가변) — 또렷하게 눈에 띄는 현대적 컬러감 */
     .input-premium {
       width: 100%;
-      border: 1px solid rgba(226,232,240,0.70);
-      border-radius: var(--radius-sm);
-      background: rgba(248,250,252,0.80);
-      padding: var(--space-sm) var(--space-md);
+      border: 1.5px solid var(--input-border);
+      border-radius: var(--radius-md);
+      background: var(--input-bg);
+      padding: clamp(0.7rem, 0.55rem + 0.5vw, 1rem) var(--space-md);
       font-size: var(--text-sm);
-      transition: all 0.3s var(--ease-smooth);
-      color: #334155;
+      transition: all 0.25s var(--ease-smooth);
+      color: #1E293B;
+    }
+    .input-premium:hover {
+      border-color: var(--input-focus);
+      background: #FFFFFF;
     }
     .input-premium:focus {
       outline: none;
       background: #FFFFFF;
-      border-color: rgba(59,130,246,0.40);
-      box-shadow: 0 0 0 3px rgba(59,130,246,0.08), 0 2px 8px rgba(59,130,246,0.06);
+      border-color: var(--input-focus);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--input-focus) 14%, transparent), 0 4px 14px color-mix(in srgb, var(--input-focus) 12%, transparent);
     }
     .input-premium::placeholder {
-      color: rgba(148,163,184,0.70);
+      color: rgba(100,116,139,0.55);
     }
+
+    /* ── Footer 색상 (v40.3.1 A안: 밝은 연청 배경 + 진한 남색 글자) ──
+       data-has-bg="0" (배경 이미지 없음/연청 단색) 일 때만 적용.
+       Tailwind text-gray-*/text-white/text-slate-* 클래스를 스코프 오버라이드. */
+    .site-footer[data-has-bg="0"] { color: var(--footer-text); }
+    .site-footer[data-has-bg="0"] .text-gray-300,
+    .site-footer[data-has-bg="0"] .text-gray-400,
+    .site-footer[data-has-bg="0"] .text-gray-500 { color: var(--footer-text) !important; }
+    .site-footer[data-has-bg="0"] .text-gray-600,
+    .site-footer[data-has-bg="0"] .text-slate-600,
+    .site-footer[data-has-bg="0"] .text-slate-700 { color: var(--footer-muted) !important; }
+    .site-footer[data-has-bg="0"] .text-white,
+    .site-footer[data-has-bg="0"] .text-white\\/90,
+    .site-footer[data-has-bg="0"] h4 { color: var(--footer-heading) !important; }
+    /* hover 시 진한 블루 강조 */
+    .site-footer[data-has-bg="0"] a:hover,
+    .site-footer[data-has-bg="0"] .hover\\:text-white:hover { color: var(--footer-hover) !important; }
+    /* 흰색 반투명 데코(카드/구분선) → 남색 반투명으로 (배경이 밝아 흰색은 안 보임) */
+    .site-footer[data-has-bg="0"] [style*="rgba(255,255,255"] {
+      background-color: rgba(30,58,138,0.05) !important;
+      border-color: rgba(30,58,138,0.12) !important;
+    }
+    .site-footer[data-has-bg="0"] [style*="border-top: 1px solid rgba(255,255,255"] {
+      border-top-color: rgba(30,58,138,0.12) !important;
+    }
+    /* "빠른 상담 전화" 큰 번호: 흰→네이비 그라데이션이 밝은 배경에 안 보이므로 단색 처리 */
+    .site-footer[data-has-bg="0"] a[style*="-webkit-text-fill-color: transparent"] {
+      background: none !important;
+      -webkit-text-fill-color: var(--footer-heading) !important;
+      color: var(--footer-heading) !important;
+    }
+    /* 개인정보처리방침 링크: 밝은 배경에 emerald-400은 옅으므로 진한 그린 */
+    .site-footer[data-has-bg="0"] .text-emerald-400 { color: #059669 !important; }
+    .site-footer[data-has-bg="0"] .text-emerald-400:hover { color: #047857 !important; }
   </style>
 `;
 }
