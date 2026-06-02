@@ -248,6 +248,164 @@ export function backgroundMediaPage() {
       </div>
     </div>
 
+    <!-- ═══ Design Theme (v40.3 연청 Light Blue) ═══ -->
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-cyan-500 text-white flex items-center gap-2">
+        <i class="fas fa-palette"></i>
+        <span class="font-bold">디자인 테마 (연청 컬러)</span>
+        <span class="ml-auto text-xs bg-white/20 px-2 py-0.5 rounded-full">v40.3</span>
+      </div>
+      <div class="p-6 space-y-6">
+
+        <!-- 전역 포인트 컬러 -->
+        <div>
+          <p class="text-xs font-bold text-gray-500 uppercase mb-2"><i class="fas fa-star mr-1"></i>전역 포인트 컬러</p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">메인 컬러 (Primary)</label>
+              <div class="flex gap-2 items-center">
+                <input type="text" data-key="theme_primary" class="setting-input flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="#2563EB">
+                <input type="color" data-color-for="theme_primary" class="w-10 h-10 rounded cursor-pointer border" value="#2563EB">
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">강조 컬러 (Accent)</label>
+              <div class="flex gap-2 items-center">
+                <input type="text" data-key="accent_color" class="setting-input flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="#3B82F6">
+                <input type="color" data-color-for="accent_color" class="w-10 h-10 rounded cursor-pointer border" value="#3B82F6">
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">시안 포인트 (Cyan)</label>
+              <div class="flex gap-2 items-center">
+                <input type="text" data-key="theme_cyan" class="setting-input flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="#06B6D4">
+                <input type="color" data-color-for="theme_cyan" class="w-10 h-10 rounded cursor-pointer border" value="#06B6D4">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GNB 메뉴바 -->
+        <div>
+          <p class="text-xs font-bold text-gray-500 uppercase mb-2"><i class="fas fa-bars mr-1"></i>GNB 메뉴바 그라데이션</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">시작 색상</label>
+              <div class="flex gap-2 items-center">
+                <input type="text" data-key="gnb_bar_color1" class="setting-input flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="#2563EB">
+                <input type="color" data-color-for="gnb_bar_color1" class="w-10 h-10 rounded cursor-pointer border" value="#2563EB">
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">중앙 색상</label>
+              <div class="flex gap-2 items-center">
+                <input type="text" data-key="gnb_bar_color2" class="setting-input flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="#3B82F6">
+                <input type="color" data-color-for="gnb_bar_color2" class="w-10 h-10 rounded cursor-pointer border" value="#3B82F6">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 페이지 헤더 배너 -->
+        <div>
+          <p class="text-xs font-bold text-gray-500 uppercase mb-2"><i class="fas fa-heading mr-1"></i>페이지 헤더 배너</p>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">색상 1</label>
+              <div class="flex gap-2 items-center">
+                <input type="text" data-key="page_header_color1" class="setting-input flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="#1E3A8A">
+                <input type="color" data-color-for="page_header_color1" class="w-10 h-10 rounded cursor-pointer border" value="#1E3A8A">
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">색상 2</label>
+              <div class="flex gap-2 items-center">
+                <input type="text" data-key="page_header_color2" class="setting-input flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="#2563EB">
+                <input type="color" data-color-for="page_header_color2" class="w-10 h-10 rounded cursor-pointer border" value="#2563EB">
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">색상 3</label>
+              <div class="flex gap-2 items-center">
+                <input type="text" data-key="page_header_color3" class="setting-input flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="#3B82F6">
+                <input type="color" data-color-for="page_header_color3" class="w-10 h-10 rounded cursor-pointer border" value="#3B82F6">
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">높이 배율 (0.3~1.0)</label>
+              <input type="text" data-key="page_header_height_scale" class="setting-input w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="0.3">
+            </div>
+          </div>
+        </div>
+
+        <!-- 푸터 -->
+        <div>
+          <p class="text-xs font-bold text-gray-500 uppercase mb-2"><i class="fas fa-shoe-prints mr-1"></i>푸터 그라데이션</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">시작 색상</label>
+              <div class="flex gap-2 items-center">
+                <input type="text" data-key="footer_color1" class="setting-input flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="#1E3A8A">
+                <input type="color" data-color-for="footer_color1" class="w-10 h-10 rounded cursor-pointer border" value="#1E3A8A">
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">끝 색상</label>
+              <div class="flex gap-2 items-center">
+                <input type="text" data-key="footer_color2" class="setting-input flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="#1E40AF">
+                <input type="color" data-color-for="footer_color2" class="w-10 h-10 rounded cursor-pointer border" value="#1E40AF">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 입력창(폼) -->
+        <div>
+          <p class="text-xs font-bold text-gray-500 uppercase mb-2"><i class="fas fa-keyboard mr-1"></i>입력창 (상담/문의 폼)</p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">배경 색상</label>
+              <div class="flex gap-2 items-center">
+                <input type="text" data-key="input_bg_color" class="setting-input flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="#F0F7FF">
+                <input type="color" data-color-for="input_bg_color" class="w-10 h-10 rounded cursor-pointer border" value="#F0F7FF">
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">테두리 색상</label>
+              <div class="flex gap-2 items-center">
+                <input type="text" data-key="input_border_color" class="setting-input flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="#BFDBFE">
+                <input type="color" data-color-for="input_border_color" class="w-10 h-10 rounded cursor-pointer border" value="#BFDBFE">
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">포커스 색상</label>
+              <div class="flex gap-2 items-center">
+                <input type="text" data-key="input_focus_color" class="setting-input flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="#3B82F6">
+                <input type="color" data-color-for="input_focus_color" class="w-10 h-10 rounded cursor-pointer border" value="#3B82F6">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 온라인 상담문의 레이아웃 -->
+        <div>
+          <p class="text-xs font-bold text-gray-500 uppercase mb-2"><i class="fas fa-ruler-combined mr-1"></i>온라인 상담문의 레이아웃</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">상하 여백 배율 (0.7=30%축소)</label>
+              <input type="text" data-key="inquiry_section_pad_scale" class="setting-input w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="0.7">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">폼 최대 폭 (px)</label>
+              <input type="text" data-key="inquiry_max_width" class="setting-input w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="1200">
+            </div>
+          </div>
+        </div>
+
+        <p class="text-xs text-gray-400 border-t pt-3"><i class="fas fa-info-circle mr-1"></i>색상은 #RRGGBB 형식으로 입력하세요. 빈 값으로 두면 연청 기본값이 적용됩니다. 저장 후 사이트 전체에 즉시 반영됩니다.</p>
+      </div>
+    </div>
+
     <!-- Save Button -->
     <div class="sticky bottom-4 flex justify-end">
       <button onclick="saveAllSettings()" class="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all flex items-center gap-2">
