@@ -1115,7 +1115,7 @@ export function layoutCSS(): string {
       border: 1px solid rgba(226,232,240,0.70);
       border-radius: var(--radius-sm);
       background: rgba(248,250,252,0.80);
-      padding: var(--space-sm) var(--space-md);
+      padding: clamp(0.7rem, 0.55rem + 0.5vw, 1rem) var(--space-md);
       font-size: var(--text-sm);
       transition: all 0.3s var(--ease-smooth);
       color: #334155;

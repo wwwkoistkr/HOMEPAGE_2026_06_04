@@ -299,7 +299,7 @@ export function inquiryPage(settings: SettingsMap) {
   })}
 
   <section style="padding:var(--space-xl) 0; background: var(--grad-surface);">
-    <div class="fluid-container" style="max-width:min(720px, 100% - var(--container-pad) * 2)">
+    <div class="fluid-container" style="max-width:min(820px, 100% - var(--container-pad) * 2)">
       <!-- Info banner -->
       <div class="rounded-xl flex items-center" style="padding:var(--space-md); margin-bottom:var(--space-md); gap:var(--space-sm); background: linear-gradient(135deg, rgba(59,130,246,0.04), rgba(6,182,212,0.03)); border: 1px solid rgba(59,130,246,0.10);">
         <div class="shrink-0 rounded-lg flex items-center justify-center" style="width:36px; height:36px; background: linear-gradient(135deg, rgba(59,130,246,0.10), rgba(6,182,212,0.08));">
@@ -308,32 +308,32 @@ export function inquiryPage(settings: SettingsMap) {
         <p class="text-slate-600 f-text-sm">빠른 상담은 <strong class="text-accent">${escapeHtml(s.phone || '02-586-1230')}</strong>으로 연락주시면 더욱 빠르게 안내받으실 수 있습니다.</p>
       </div>
 
-      <form id="inquiryForm" class="bg-white rounded-xl border border-slate-200/60" style="padding:clamp(1.25rem, 2.5vw, 2.25rem); box-shadow: var(--shadow-sm);">
-        <div class="grid grid-cols-1 sm:grid-cols-2" style="gap:var(--space-md); margin-bottom:var(--space-md)">
+      <form id="inquiryForm" class="bg-white rounded-xl border border-slate-200/60" style="padding:clamp(1.75rem, 3vw, 3rem); box-shadow: var(--shadow-sm);">
+        <div class="grid grid-cols-1 sm:grid-cols-2" style="gap:var(--space-lg); margin-bottom:var(--space-lg)">
           <div>
-            <label class="block font-semibold text-slate-700 f-text-xs" style="margin-bottom:var(--space-xs)">이름 <span class="text-red-500">*</span></label>
+            <label class="block font-semibold text-slate-700 f-text-sm" style="margin-bottom:var(--space-sm)">이름 <span class="text-red-500">*</span></label>
             <input type="text" name="name" required class="input-premium">
           </div>
           <div>
-            <label class="block font-semibold text-slate-700 f-text-xs" style="margin-bottom:var(--space-xs)">회사명</label>
+            <label class="block font-semibold text-slate-700 f-text-sm" style="margin-bottom:var(--space-sm)">회사명</label>
             <input type="text" name="company" class="input-premium">
           </div>
           <div>
-            <label class="block font-semibold text-slate-700 f-text-xs" style="margin-bottom:var(--space-xs)">이메일</label>
+            <label class="block font-semibold text-slate-700 f-text-sm" style="margin-bottom:var(--space-sm)">이메일</label>
             <input type="email" name="email" class="input-premium">
           </div>
           <div>
-            <label class="block font-semibold text-slate-700 f-text-xs" style="margin-bottom:var(--space-xs)">연락처</label>
+            <label class="block font-semibold text-slate-700 f-text-sm" style="margin-bottom:var(--space-sm)">연락처</label>
             <input type="tel" name="phone" class="input-premium">
           </div>
         </div>
-        <div style="margin-bottom:var(--space-md)">
-          <label class="block font-semibold text-slate-700 f-text-xs" style="margin-bottom:var(--space-xs)">제목 <span class="text-red-500">*</span></label>
+        <div style="margin-bottom:var(--space-lg)">
+          <label class="block font-semibold text-slate-700 f-text-sm" style="margin-bottom:var(--space-sm)">제목 <span class="text-red-500">*</span></label>
           <input type="text" name="subject" required class="input-premium">
         </div>
-        <div style="margin-bottom:var(--space-md)">
-          <label class="block font-semibold text-slate-700 f-text-xs" style="margin-bottom:var(--space-xs)">문의 내용 <span class="text-red-500">*</span></label>
-          <textarea name="message" rows="5" required class="input-premium" style="resize:vertical;"></textarea>
+        <div style="margin-bottom:var(--space-lg)">
+          <label class="block font-semibold text-slate-700 f-text-sm" style="margin-bottom:var(--space-sm)">문의 내용 <span class="text-red-500">*</span></label>
+          <textarea name="message" rows="6" required class="input-premium" style="resize:vertical;"></textarea>
         </div>
 
         <!-- ═══ 개인정보 수집·이용 동의 (v39.27) ═══ -->
@@ -342,24 +342,28 @@ export function inquiryPage(settings: SettingsMap) {
                     background: rgba(59,130,246,0.04);
                     border: 1px solid rgba(59,130,246,0.18);
                     border-radius: var(--radius-md);">
-          <label class="flex items-start cursor-pointer" style="gap:var(--space-sm)">
-            <input type="checkbox" name="consent_personal_info" id="consentPI" required
-                   class="mt-1 shrink-0 cursor-pointer"
-                   style="width:18px; height:18px; accent-color:#2563EB;">
-            <span class="f-text-sm text-slate-700" style="line-height:1.6;">
-              <strong class="text-red-500">(필수)</strong>
-              <strong>개인정보 수집·이용에 동의합니다.</strong>
+          <div class="flex items-center flex-wrap" style="gap:var(--space-sm) var(--space-md); row-gap:var(--space-sm);">
+            <label class="flex items-center cursor-pointer shrink-0" style="gap:var(--space-sm)">
+              <input type="checkbox" name="consent_personal_info" id="consentPI" required checked
+                     class="shrink-0 cursor-pointer"
+                     style="width:18px; height:18px; accent-color:#2563EB;">
+              <span class="f-text-sm text-slate-700" style="line-height:1.6; white-space:nowrap;">
+                <strong class="text-red-500">(필수)</strong>
+                <strong>개인정보 수집·이용에 동의합니다.</strong>
+              </span>
+            </label>
+            <span class="flex items-center f-text-xs" style="gap:var(--space-md); white-space:nowrap;">
               <button type="button" id="togglePrivacyDetail"
-                      class="text-blue-600 hover:underline ml-2 f-text-xs"
-                      style="background:none; border:none; padding:0; cursor:pointer;">
+                      class="text-blue-600 hover:underline"
+                      style="background:none; border:none; padding:0; cursor:pointer; white-space:nowrap;">
                 [전문 보기 ▼]
               </button>
               <a href="/privacy" target="_blank" rel="noopener"
-                 class="text-blue-600 hover:underline ml-2 f-text-xs">
+                 class="text-blue-600 hover:underline" style="white-space:nowrap;">
                 <i class="fas fa-external-link-alt"></i> 처리방침 전문
               </a>
             </span>
-          </label>
+          </div>
 
           <!-- 동의 전문 (기본 숨김, 토글로 펼침) -->
           <div id="privacyDetail" class="hidden"
