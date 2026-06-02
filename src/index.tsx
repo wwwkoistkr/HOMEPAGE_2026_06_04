@@ -258,37 +258,51 @@ app.get('/services/:slug/:pageSlug', async (c) => {
   const pages = (await db.prepare('SELECT * FROM dep_pages WHERE dept_id = ? AND is_active = 1 ORDER BY sort_order').bind(dept.id).all<DepPage>()).results || [];
   const currentPage = pages.find(p => p.slug === pageSlug) || null;
 
-  // Special handling: if pageSlug is 'progress', render dynamic progress data
-  if (pageSlug === 'progress') {
+  // Special handling: 사업별 동적 현황 페이지
+  //   - pageSlug === 'progress'  : 해당 부서(사업)의 현황 (category = dept.name 으로 스코프)
+  //   - pageSlug === 'etc-test'  : 기타 S/W 시험현황 (category = '기타시험평가' 로 스코프, 시험성적서 하위)
+  if (pageSlug === 'progress' || pageSlug === 'etc-test') {
+    // 이 페이지가 다루는 사업(현황) 카테고리. etc-test 는 '기타시험평가' 고정.
+    const scopeCategory = pageSlug === 'etc-test' ? '기타시험평가' : dept.name;
+
     const page = parseInt(c.req.query('page') || '1') || 1;
     const perPage = 15;
     const search = c.req.query('q') || '';
     const statusFilter = c.req.query('status') || '';
-    const categoryFilter = c.req.query('category') || '';
 
-    let whereClause = '1=1';
-    const binds: string[] = [];
-    if (categoryFilter) { whereClause += ' AND category = ?'; binds.push(categoryFilter); }
-    if (search) { whereClause += ' AND product_name LIKE ?'; binds.push(`%${search}%`); }
+    // v40.4: 사업별 페이지는 항상 해당 사업(category)으로 스코프 → 다른 사업 항목이 섞이지 않음
+    let whereClause = 'category = ?';
+    const binds: string[] = [scopeCategory];
+    // v40.4: 검색 대상 = 제품명 + 회사명
+    if (search) { whereClause += ' AND (product_name LIKE ? OR company LIKE ?)'; binds.push(`%${search}%`, `%${search}%`); }
     if (statusFilter) { whereClause += ' AND status = ?'; binds.push(statusFilter); }
 
     const countStmt = db.prepare(`SELECT COUNT(*) as cnt FROM progress_items WHERE ${whereClause}`);
-    const totalResult = await (binds.length > 0 ? countStmt.bind(...binds) : countStmt).first<{ cnt: number }>();
+    const totalResult = await countStmt.bind(...binds).first<{ cnt: number }>();
     const total = totalResult?.cnt || 0;
 
     const offset = (page - 1) * perPage;
     const dataStmt = db.prepare(`SELECT * FROM progress_items WHERE ${whereClause} ORDER BY sort_order ASC LIMIT ? OFFSET ?`);
-    const allBinds = [...binds, perPage, offset];
-    const items = (await dataStmt.bind(...allBinds).all<ProgressItem>()).results || [];
+    const items = (await dataStmt.bind(...binds, perPage, offset).all<ProgressItem>()).results || [];
 
-    const categoryCounts = (await db.prepare(`SELECT category, COUNT(*) as cnt FROM progress_items GROUP BY category ORDER BY category`).all<{category:string;cnt:number}>()).results || [];
+    // 카테고리 탭(유지): 이 사업 단일 카테고리만 노출 (다른 사업과 섞이지 않도록 스코프)
+    const categoryCounts = [{ category: scopeCategory, cnt: total }];
+
+    // v40.4: 자료실 연계 (옵션 A) — etc-test 페이지에 한해 category='기타시험현황' 자료 목록 노출
+    let relatedDownloads: { id: number; title: string; file_name: string; created_at: string }[] = [];
+    if (pageSlug === 'etc-test') {
+      relatedDownloads = (await db.prepare(
+        `SELECT id, title, file_name, created_at FROM downloads WHERE category = ? ORDER BY created_at DESC`
+      ).bind('기타시험현황').all<{ id: number; title: string; file_name: string; created_at: string }>()).results || [];
+    }
 
     // Override the page content with dynamic progress table
-    const dynamicContent = serviceProgressContent(items, page, total, perPage, search, statusFilter, categoryFilter, categoryCounts);
-    const overriddenPage = currentPage ? { ...currentPage, content: dynamicContent } : { id: 0, dept_id: dept.id, title: '평가현황', slug: 'progress', content: dynamicContent, meta_description: '', sort_order: 0, is_active: 1 } as DepPage;
+    const dynamicContent = serviceProgressContent(items, page, total, perPage, search, statusFilter, scopeCategory, categoryCounts, relatedDownloads);
+    const pageTitle = pageSlug === 'etc-test' ? 'S/W 시험현황' : '평가현황';
+    const overriddenPage = currentPage ? { ...currentPage, content: dynamicContent } : { id: 0, dept_id: dept.id, title: pageTitle, slug: pageSlug, content: dynamicContent, meta_description: '', sort_order: 0, is_active: 1 } as DepPage;
 
     const content = servicePage(dept, pages, overriddenPage, settings);
-    return c.html(layout({ settings, departments, isAdmin: !!c.get('isAdmin'), title: `평가현황 - ${dept.name}`, content }));
+    return c.html(layout({ settings, departments, isAdmin: !!c.get('isAdmin'), title: `${pageTitle} - ${dept.name}`, content }));
   }
 
   const content = servicePage(dept, pages, currentPage, settings);
@@ -363,8 +377,9 @@ app.get('/support/progress', async (c) => {
     binds.push(categoryFilter);
   }
   if (search) {
-    whereClause += ' AND product_name LIKE ?';
-    binds.push(`%${search}%`);
+    // v40.4: 검색 대상 = 제품명 + 회사명
+    whereClause += ' AND (product_name LIKE ? OR company LIKE ?)';
+    binds.push(`%${search}%`, `%${search}%`);
   }
   if (statusFilter) {
     whereClause += ' AND status = ?';
@@ -645,8 +660,8 @@ for (const page of adminPages) {
         <p class="text-gray-400"><i class="fas fa-spinner fa-spin mr-1"></i> 데이터를 불러오는 중...</p>
       </div>
       ${xlsxScript}
-      <script src="/static/js/admin-fetch.js?v=40.2"></script>
-      <script src="/static/js/${jsFile}.js?v=40.2"></script>
+      <script src="/static/js/admin-fetch.js?v=40.4"></script>
+      <script src="/static/js/${jsFile}.js?v=40.4"></script>
     `;
     return c.html(adminDashboardPage(content, page, settings.logo_url || ''));
   });

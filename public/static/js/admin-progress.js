@@ -47,6 +47,15 @@
     if (mainCategories.length === 0) {
       mainCategories = ['CC평가', '보안기능시험', '성능평가', '암호모듈검증'];
     }
+    // v40.4: 가상 카테고리 '기타시험평가'(S/W 시험현황) 메타 — 성능평가와 동일 라벨(제품유형/운영체제/개발사)
+    if (!categoriesMeta['기타시험평가']) {
+      categoriesMeta['기타시험평가'] = Object.assign({}, FALLBACK_META, {
+        icon: 'fa-flask', color: '#78716C',
+        col2: '제품유형', col3: '운영체제', col4: '개발사',
+        col2Opts: [], col3Opts: [], col4Opts: [], col4FreeText: true,
+        statusOpts: ['시험접수', '시험진행', '발급완료']
+      });
+    }
   }
 
   async function load() {
@@ -302,7 +311,9 @@
   function progFormHtml(prog) {
     const isEdit = !!prog;
     // v40.0: deptList 기반 카테고리 선택 (활성 사업분야 전체)
+    // v40.4: 가상 카테고리 '기타시험평가'(S/W 시험현황) 추가 — 부서가 아니므로 별도로 노출
     const availableCats = deptList.map(function(d){ return d.name; });
+    if (availableCats.indexOf('기타시험평가') < 0) { availableCats.push('기타시험평가'); }
     const selCat = (prog && prog.category) || (currentCategory && currentCategory !== '기타' ? currentCategory : (availableCats[0] || 'CC평가'));
     const meta = categoriesMeta[selCat] || FALLBACK_META;
 

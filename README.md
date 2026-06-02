@@ -1,6 +1,29 @@
-# KOIST Website v40.3
+# KOIST Website v40.4
 
-**(주)한국정보보안기술원** 공식 웹사이트 — **koist.kr 원본 디자인 완전 복제** (Scoped Legacy Theme) + **개인정보보호법 완전 준수 4-Phase 업그레이드** + **평가현황 카테고리 통합 관리** + **연청(라이트블루) 동적 테마 & 관리자 디자인 관리**
+**(주)한국정보보안기술원** 공식 웹사이트 — **koist.kr 원본 디자인 완전 복제** (Scoped Legacy Theme) + **개인정보보호법 완전 준수 4-Phase 업그레이드** + **평가현황 카테고리 통합 관리** + **연청(라이트블루) 동적 테마 & 관리자 디자인 관리** + **S/W 시험현황(기타시험평가) 신설 & 4+1 홈카드**
+
+---
+
+> ## 🆕 v40.4 변경 사항 (2026-06-02)
+>
+> **사용자 요청**: 시험성적서 사업 아래 "S/W 시험현황" 페이지 신설(`기타시험평가` 카테고리), 홈 평가현황을 4+1 구조로 완성, 회사명 검색 추가, 사업별 검색 분리, 자료실 연계
+>
+> **변경 내용**:
+> - **신규 페이지**: `/services/certificate/etc-test` — **S/W 시험현황** (컬럼: 제품유형/운영체제/개발사, 성능평가와 동일)
+> - **상태 데이터 카테고리**: `기타시험평가` (자유 텍스트 카테고리로 admin progress CRUD 그대로 사용)
+> - **홈 4+1 카드**: 4개 메인(CC평가·보안기능시험·암호모듈검증·성능평가) + **기타** 카드(항상 노출, 0건이어도 표시) → 클릭 시 `/services/certificate/etc-test`
+> - **회사명 검색**: 전역(`/support/progress`) + 사업별(`/services/:slug/progress`) + S/W시험현황 모두 `product_name OR company` LIKE 검색 (플레이스홀더 "제품명·회사명 검색...")
+> - **사업별 검색 분리(버그 수정)**: 기존 `whereClause='1=1'`로 전 사업 데이터가 섞이던 문제를 `category = dept.name` 스코핑으로 해결
+> - **자료실 연계(Option A)**: 카테고리 기반 느슨한 연결 — `downloads.category = '기타시험현황'` 자료가 S/W 시험현황 페이지 하단 "관련 자료실"에 자동 노출
+> - **sanitizeHtml 우회(핵심 수정)**: `renderPageContent()` 헬퍼 추가 — `progress`/`etc-test` 동적 슬러그는 검색 폼(form/input/select)이 strip되지 않도록 신뢰된 원본 그대로 렌더
+> - **관리자**: `admin-progress.js`에 `기타시험평가` 카테고리 드롭다운 + 메타(제품유형/운영체제/개발사) 추가
+>
+> **DB 마이그레이션**: [`migrations/0058_etc_test_status.sql`](migrations/0058_etc_test_status.sql) — etc-test dep_pages(시험성적서 dept_id=5) + 샘플 progress_item
+>
+> **상세 분석 보고서**:
+> - [`docs/ANALYSIS_progress_4plus1_and_search.md`](docs/ANALYSIS_progress_4plus1_and_search.md)
+> - [`docs/ANALYSIS_v2_sw_test_status_and_search.md`](docs/ANALYSIS_v2_sw_test_status_and_search.md)
+> - [`docs/ANALYSIS_v3_FINAL_etc_test_and_admin.md`](docs/ANALYSIS_v3_FINAL_etc_test_and_admin.md)
 
 ---
 
@@ -26,7 +49,8 @@
 
 > ## 🏢 사무실에서 작업 이어가기 (Quick Start)
 >
-> **현재 상태**: v40.3 — 연청 테마 + 관리자 디자인 관리 + 푸터 가독성(A안) ✅ Cloudflare Pages 배포 완료 (2026-06-02, deploy `a16cfc35`) / `main` 반영 / 운영 도메인 koist.ai.kr·www.koist.kr 적용 확인
+> **현재 상태**: v40.4 — S/W 시험현황(기타시험평가) 신설 + 4+1 홈카드 + 회사명 검색 + 사업별 검색 분리 + 자료실 연계 ✅ 로컬 검증 완료 (빌드/마이그레이션/curl·Playwright 전부 PASS) / `main` 커밋 / **프로덕션 배포 대기**
+> **직전 배포**: v40.3 — 연청 테마 + 관리자 디자인 관리 + 푸터 가독성(A안) ✅ Cloudflare Pages 배포 완료 (2026-06-02, deploy `a16cfc35`) / 운영 도메인 koist.ai.kr·www.koist.kr 적용 확인
 >
 > ```bash
 > git pull origin main       # 최신 코드 가져오기
@@ -40,7 +64,7 @@
 > 2. 📌 [`docs/HANDOFF_OFFICE_20260601.md`](docs/HANDOFF_OFFICE_20260601.md) — 사무실 인수인계
 > 3. ✅ [`docs/V40_1_FINAL_VERIFICATION_REPORT_20260601.md`](docs/V40_1_FINAL_VERIFICATION_REPORT_20260601.md) — v40.1 정리 완료 검증
 >
-> **⚠️ 다음 JS/CSS 변경 시 반드시**: `src/index.tsx`의 `?v=40.2` → `?v=40.3`으로 증가시킬 것!
+> **⚠️ 다음 JS/CSS 변경 시 반드시**: `src/index.tsx`의 `?v=40.4` → 다음 버전으로 증가시킬 것!
 > (캐시 무효화, 잊으면 사용자 화면에 변경사항 안 보임)
 
 ---
@@ -48,7 +72,8 @@
 ## URLs
 - **Production**: https://koist-website.pages.dev (메인)
 - **로컬 개발**: https://3000-i0chksvz2v05lxmcn60fh-3c7ff1b5.sandbox.novita.ai (port 3000, PM2)
-- **v40.3 (Latest)**: 연청(라이트블루) 동적 테마 + 관리자 디자인 관리 + 상담문의 5가지 디자인 개선
+- **v40.4 (Latest)**: S/W 시험현황(`기타시험평가`) 신설 `/services/certificate/etc-test` + 홈 4+1 카드(기타 항상 표시) + 회사명 검색 + 사업별 검색 분리 + 자료실 연계(Option A, 카테고리 `기타시험현황`)
+- **v40.3**: 연청(라이트블루) 동적 테마 + 관리자 디자인 관리 + 상담문의 5가지 디자인 개선
 - **v40.2**: 평가현황/시험현황 등급·구분 컬럼 폭 확대 + 별칭 매핑 + 상담문의 폼 개선(동의 기본체크/링크 한줄/입력창 가독성)
 - **v40.1**: 평가현황 UI 미세조정 (table-fixed + colgroup 30% + text-lg 1.5배 + 캐시 무효화)
 - **v40.0**: 평가현황 카테고리 통합 + departments 동적 로딩 + 4+1 카드 UI + 하이브리드 매트릭스

@@ -8,6 +8,8 @@ dist/
 # Production snapshot (sensitive DB dumps)
 production-snapshot/
 production-snapshot-*.tar.gz
+*.tar.gz
+koist-website-source-*.tar.gz
 
 # Production snapshots (v40.x) - downloaded via separate URL
 production-snapshot-v40.*/

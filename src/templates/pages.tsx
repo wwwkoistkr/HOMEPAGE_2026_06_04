@@ -82,6 +82,18 @@ function statusBadge(status: string) {
 
 
 /* ────────────── Service Detail Page ────────────── */
+// v40.4: 동적 현황 페이지(progress/etc-test)는 서버가 생성한 신뢰된 HTML(검색폼·표 포함)이므로
+//        sanitizeHtml을 건너뛴다. 그 외 관리자 입력 콘텐츠는 항상 sanitize.
+const DYNAMIC_PAGE_SLUGS = new Set(['progress', 'etc-test']);
+function renderPageContent(currentPage: DepPage | null, pages: DepPage[]): string {
+  const target = currentPage || (pages.length > 0 ? pages[0] : null);
+  if (!target) return '<p style="text-align:center;color:#aaa">콘텐츠가 준비 중입니다.</p>';
+  if (DYNAMIC_PAGE_SLUGS.has(target.slug)) {
+    return target.content; // 신뢰된 동적 콘텐츠 (검색 폼/입력/표 유지)
+  }
+  return sanitizeHtml(target.content);
+}
+
 export function servicePage(dept: Department, pages: DepPage[], currentPage: DepPage | null, settings: SettingsMap) {
   const s = settings;
   const headerBg = (currentPage as any)?.header_bg_url || dept.header_bg_url || s.page_header_bg_url || '';
@@ -140,13 +152,13 @@ export function servicePage(dept: Department, pages: DepPage[], currentPage: Dep
                 <p>${escapeHtml(currentPage?.title || (pages[0]?.title) || dept.name)}</p>
               </div>
               <div class="pagecommon-content">
-                ${currentPage ? sanitizeHtml(currentPage.content) : (pages.length > 0 ? sanitizeHtml(pages[0].content) : '<p style="text-align:center;color:#aaa">콘텐츠가 준비 중입니다.</p>')}
+                ${renderPageContent(currentPage, pages)}
               </div>
             </div>
             ` : `
             <!-- Legacy prose theme (use_legacy_theme=0) -->
             <div class="prose prose-slate max-w-none prose-headings:text-primary prose-p:text-slate-600 prose-li:text-slate-600 prose-a:text-accent" style="font-size:var(--text-sm)">
-              ${currentPage ? sanitizeHtml(currentPage.content) : (pages.length > 0 ? sanitizeHtml(pages[0].content) : '<p class="text-slate-400">콘텐츠가 준비 중입니다.</p>')}
+              ${renderPageContent(currentPage, pages)}
             </div>
             `}
           </div>
@@ -534,7 +546,7 @@ const CATEGORY_META: Record<string, { icon: string; color: string; col2: string;
   '정보보호제품평가': { icon: 'fa-box-archive', color: '#06B6D4', col2: '평가등급', col3: '제품유형', col4: '평가기준' },
   '클라우드보안인증': { icon: 'fa-cloud-arrow-up', color: '#6366F1', col2: '인증등급', col3: '서비스유형', col4: '인증기준' },
   'IoT보안인증':   { icon: 'fa-microchip', color: '#14B8A6', col2: '인증등급', col3: '기기유형', col4: '인증기준' },
-  '기타시험평가':   { icon: 'fa-flask', color: '#78716C', col2: '등급', col3: '유형', col4: '기준' },
+  '기타시험평가':   { icon: 'fa-flask', color: '#78716C', col2: '제품유형', col3: '운영체제', col4: '개발사' },
 };
 
 function getCatMeta(cat: string) {
@@ -622,7 +634,7 @@ export function progressPage(items: ProgressItem[], page: number = 1, total: num
             <option value="시험접수" ${statusFilter === '시험접수' ? 'selected' : ''}>시험접수</option>
           </select>
           <div class="flex-1 relative">
-            <input type="text" name="q" value="${searchAttr}" placeholder="제품명 검색..." class="input-premium" style="padding-right:2.5rem">
+            <input type="text" name="q" value="${searchAttr}" placeholder="제품명·회사명 검색..." class="input-premium" style="padding-right:2.5rem">
             <button type="submit" class="absolute right-0 top-0 bottom-0 text-slate-400 hover:text-accent transition-colors" style="padding:0 var(--space-md)">
               <i class="fas fa-search f-text-sm"></i>
             </button>
@@ -705,7 +717,7 @@ export function progressPage(items: ProgressItem[], page: number = 1, total: num
 /* ══════════════════════════════════════════════════════════
    Embedded Progress Table (for service sub-pages)
    ══════════════════════════════════════════════════════════ */
-export function serviceProgressContent(items: ProgressItem[], page: number = 1, total: number = 0, perPage: number = 15, search: string = '', statusFilter: string = '', categoryFilter: string = '', categoryCounts: {category:string;cnt:number}[] = []) {
+export function serviceProgressContent(items: ProgressItem[], page: number = 1, total: number = 0, perPage: number = 15, search: string = '', statusFilter: string = '', categoryFilter: string = '', categoryCounts: {category:string;cnt:number}[] = [], relatedDownloads: { id: number; title: string; file_name: string; created_at: string }[] = []) {
   const totalPages = Math.ceil(total / perPage);
   const startNum = total - (page - 1) * perPage;
 
@@ -763,7 +775,7 @@ export function serviceProgressContent(items: ProgressItem[], page: number = 1, 
           <option value="시험접수" ${statusFilter === '시험접수' ? 'selected' : ''}>시험접수</option>
         </select>
         <div class="flex-1 relative">
-          <input type="text" name="q" value="${searchAttr}" placeholder="제품명 검색..." class="input-premium" style="padding-right:2.5rem">
+          <input type="text" name="q" value="${searchAttr}" placeholder="제품명·회사명 검색..." class="input-premium" style="padding-right:2.5rem">
           <button type="submit" class="absolute right-0 top-0 bottom-0 text-slate-400 hover:text-accent transition-colors" style="padding:0 var(--space-md)">
             <i class="fas fa-search f-text-sm"></i>
           </button>
@@ -835,6 +847,24 @@ export function serviceProgressContent(items: ProgressItem[], page: number = 1, 
           }).join('')}
         ${page < totalPages ? `<a href="${escapeAttr(pageUrl(page + 1))}" class="flex items-center justify-center rounded-lg bg-white border border-slate-200/70 text-slate-500 hover:bg-slate-50 transition-all f-text-xs" style="width:32px; height:32px"><i class="fas fa-chevron-right"></i></a>
         <a href="${escapeAttr(pageUrl(totalPages))}" class="flex items-center justify-center rounded-lg bg-white border border-slate-200/70 text-slate-500 hover:bg-slate-50 transition-all f-text-xs" style="width:32px; height:32px"><i class="fas fa-angles-right"></i></a>` : ''}
+      </div>
+    </div>` : ''}
+
+    <!-- v40.4: 관련 자료실 (옵션 A — category 기반 연계) -->
+    ${relatedDownloads.length > 0 ? `
+    <div class="rounded-lg border border-slate-200/60" style="margin-top:var(--space-lg); padding:var(--space-md); background: rgba(248,250,252,0.60);">
+      <h3 class="font-bold text-primary f-text-sm flex items-center" style="margin-bottom:var(--space-sm); gap:var(--space-xs)">
+        <i class="fas fa-folder-open text-purple-500" style="font-size:12px"></i> 관련 자료실
+      </h3>
+      <div class="flex flex-col" style="gap:6px">
+        ${relatedDownloads.map(d => `
+        <a href="/api/downloads/${parseInt(String(d.id), 10) || 0}/file" class="flex items-center justify-between rounded-lg bg-white border border-slate-200/60 hover:border-slate-300 transition-all group" style="padding:var(--space-sm) var(--space-md); gap:var(--space-sm)">
+          <span class="flex items-center min-w-0" style="gap:var(--space-sm)">
+            <i class="fas fa-file-lines text-purple-400 shrink-0" style="font-size:12px"></i>
+            <span class="font-medium text-slate-700 truncate f-text-xs group-hover:text-accent transition-colors">${escapeHtml(d.title)}</span>
+          </span>
+          <span class="shrink-0 text-slate-400 f-text-xs"><i class="fas fa-download mr-1"></i>${escapeHtml((d.file_name || '').split('.').pop() || '')}</span>
+        </a>`).join('')}
       </div>
     </div>` : ''}
   `;

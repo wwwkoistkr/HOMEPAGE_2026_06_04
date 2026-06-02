@@ -221,6 +221,17 @@ export function homePage(opts: {
   };
 
   const totalEvals = catCounts.reduce((sum, c) => sum + c.cnt, 0);
+
+  // v40.4: 4+1 구조 — 주요 4개 카테고리 + "기타" 그룹(주요 4개에 속하지 않는 모든 항목 합산)
+  // 데이터가 0건이어도 "기타 0건" 카드를 항상 표시 (사용자 요구)
+  const mainCategories = ['CC평가', '보안기능시험', '암호모듈검증', '성능평가'];
+  const mainCatCards = mainCategories.map(name => {
+    const found = catCounts.find(c => c.category === name);
+    return { category: name, cnt: found ? found.cnt : 0 };
+  });
+  const etcCount = catCounts
+    .filter(c => mainCategories.indexOf(c.category) < 0)
+    .reduce((sum, c) => sum + c.cnt, 0);
   // v39.1: Hero Badge 초기값 — 관리자가 unified_reduction_default를 명시 설정한 경우에만 그 값을 쓰고,
   // 그렇지 않으면 현재 DB의 EAL2/3/4 값으로 실제 계산된 overall reduction을 주입.
   const adminOverrideReduction = s.unified_reduction_default;
@@ -1877,9 +1888,9 @@ export function homePage(opts: {
             <a href="/support/progress" class="text-accent font-semibold hover:underline inline-flex items-center" style="gap:4px; font-size:clamp(1.0rem, 0.85rem + 0.4vw, 1.5rem);">전체보기 <i class="fas fa-chevron-right" style="font-size:clamp(9px,0.7vw,12px)"></i></a>
           </div>
 
-          ${catCounts.length > 0 ? `
-          <div class="grid grid-cols-2 sm:grid-cols-4" style="gap:clamp(0.4rem,0.7vw,0.6rem); margin-bottom:var(--space-md)">
-            ${catCounts.slice(0, 4).map(cc => {
+          <!-- v40.4: 4+1 카드 (주요 4개 + 기타 1개, 항상 표시) -->
+          <div class="grid grid-cols-2 sm:grid-cols-5" style="gap:clamp(0.4rem,0.7vw,0.6rem); margin-bottom:var(--space-md)">
+            ${mainCatCards.map(cc => {
               const m = catMeta[cc.category] || { icon: 'fa-circle', color: '#64748B' };
               return `
             <a href="/support/progress?category=${encodeURIComponent(cc.category)}" class="group rounded-lg border border-slate-100 hover:border-slate-200 transition-all hover:shadow-sm text-center" style="padding:clamp(0.5rem,0.8vw,0.8rem);">
@@ -1890,15 +1901,15 @@ export function homePage(opts: {
               <div class="font-black" style="color:${m.color}; line-height:1.15; font-size:clamp(1.4rem,1.1rem+0.8vw,2.4rem);">${cc.cnt}<span class="text-slate-400 font-normal ml-0.5" style="font-size:clamp(0.85rem,0.7rem+0.3vw,1.2rem);">건</span></div>
             </a>`;
             }).join('')}
+            <!-- +1: 기타 카드 (S/W 시험현황 페이지로 이동, 0건이어도 항상 표시) -->
+            <a href="/services/certificate/etc-test" class="group rounded-lg border border-slate-100 hover:border-slate-200 transition-all hover:shadow-sm text-center" style="padding:clamp(0.5rem,0.8vw,0.8rem);">
+              <div class="flex items-center justify-center" style="gap:4px; margin-bottom:4px">
+                <i class="fas fa-flask" style="color:#78716C; font-size:clamp(0.85rem,0.9vw,1.2rem)"></i>
+                <span class="text-slate-500 truncate" style="font-size:clamp(0.95rem,0.8rem+0.4vw,1.4rem);">기타</span>
+              </div>
+              <div class="font-black" style="color:${etcCount > 0 ? '#78716C' : '#CBD5E1'}; line-height:1.15; font-size:clamp(1.4rem,1.1rem+0.8vw,2.4rem);">${etcCount}<span class="text-slate-400 font-normal ml-0.5" style="font-size:clamp(0.85rem,0.7rem+0.3vw,1.2rem);">건</span></div>
+            </a>
           </div>
-          ${catCounts.length > 4 ? `
-          <div class="flex flex-wrap" style="gap:6px; margin-bottom:var(--space-md)">
-            ${catCounts.slice(4).map(cc => {
-              const m = catMeta[cc.category] || { icon: 'fa-circle', color: '#64748B' };
-              return `<a href="/support/progress?category=${encodeURIComponent(cc.category)}" class="inline-flex items-center rounded-full hover:shadow-sm transition-all" style="gap:4px; padding:4px 14px; background:${m.color}08; color:${m.color}; border:1px solid ${m.color}15; font-size:clamp(0.95rem,0.8rem+0.4vw,1.4rem);"><i class="fas ${m.icon}" style="font-size:clamp(8px,0.65vw,12px)"></i>${cc.category} <strong>${cc.cnt}</strong></a>`;
-            }).join('')}
-          </div>` : ''}
-          ` : ''}
 
           <div class="flex items-center justify-between rounded-lg" style="margin-bottom:var(--space-md); padding:clamp(6px,0.6vw,10px) clamp(12px,1vw,18px); background: linear-gradient(135deg, rgba(59,130,246,0.03), rgba(6,182,212,0.02)); border: 1px solid rgba(59,130,246,0.08);">
             <span class="text-slate-500" style="font-size:clamp(0.95rem,0.8rem+0.4vw,1.4rem);"><i class="fas fa-chart-pie text-blue-400 mr-1" style="font-size:clamp(10px,0.8vw,14px)"></i>총 시험·평가 실적</span>
