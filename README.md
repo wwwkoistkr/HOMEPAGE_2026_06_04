@@ -1,12 +1,32 @@
-# KOIST Website v40.1
+# KOIST Website v40.2
 
-**(주)한국정보보안기술원** 공식 웹사이트 — **koist.kr 원본 디자인 완전 복제** (Scoped Legacy Theme) + **개인정보보호법 완전 준수 4-Phase 업그레이드** + **평가현황 카테고리 통합 관리**
+**(주)한국정보보안기술원** 공식 웹사이트 — **koist.kr 원본 디자인 완전 복제** + **평가현황/시험현황 컬럼 폭 최적화** + **개인정보보호법 완전 준수**
+
+---
+
+> ## 🆕 v40.2 변경 사항 (2026-06-02 배포)
+>
+> **사용자 피드백**: 보안기능시험 시험현황 페이지에서 "정보보호시스템" 같은 긴 등급명이 좁은 컬럼에 잘려서 옆 구분 컬럼과 겹쳐 보이는 문제
+>
+> **변경 내용**:
+> - **등급 컬럼**: 90px → **220px** (사용자 결정 Option B)
+> - **구분 컬럼**: 88px → **140px**
+> - **min-width**: 680px → **820px** (제품명 영역 보호)
+> - **별칭 매핑** 4건 적용 (DB 원본 보존, `title` 호버 시 원본 표시):
+>   - 안티바이러스 제품 (Mobile) → **안티바이 제품 (Mobile)**
+>   - 안티바이러스제품(Linux) → **안티바이 제품 (Linux)**
+>   - 소스코드 보안약점 분석도구 → **소스코드 보안약점도구**
+>   - 모듈형 안티바이러스 제품 → **모듈형 안티바이 제품**
+>
+> **영향 범위**: 10개 부서 progress 페이지 + `/support/progress` 전체 평가현황 (총 222건 데이터)
+>
+> **상세 분석 보고서**: [`docs/V40_2_COLUMN_WIDTH_FINAL_ANALYSIS_20260602.md`](docs/V40_2_COLUMN_WIDTH_FINAL_ANALYSIS_20260602.md)
 
 ---
 
 > ## 🏢 사무실에서 작업 이어가기 (Quick Start)
 >
-> **현재 상태**: v40.1 안정 배포 완료 / Git working tree clean / 미커밋 없음
+> **현재 상태**: v40.2 안정 배포 완료 / Git working tree clean / 미커밋 없음
 >
 > ```bash
 > git pull origin main       # 최신 코드 가져오기
@@ -16,11 +36,11 @@
 > ```
 >
 > **반드시 읽을 문서** (총 30분):
-> 1. 📌 [`docs/HANDOFF_OFFICE_20260601.md`](docs/HANDOFF_OFFICE_20260601.md) — **사무실 인수인계** ⭐
-> 2. ✅ [`docs/V40_1_FINAL_VERIFICATION_REPORT_20260601.md`](docs/V40_1_FINAL_VERIFICATION_REPORT_20260601.md) — 정리 완료 검증
-> 3. 🔍 [`docs/V40_1_PROGRESS_UI_ANALYSIS_REPORT_20260601.md`](docs/V40_1_PROGRESS_UI_ANALYSIS_REPORT_20260601.md) — 문제·해결 분석
+> 1. 🆕 [`docs/V40_2_COLUMN_WIDTH_FINAL_ANALYSIS_20260602.md`](docs/V40_2_COLUMN_WIDTH_FINAL_ANALYSIS_20260602.md) — **v40.2 컬럼 폭 분석** ⭐
+> 2. 📌 [`docs/HANDOFF_OFFICE_20260601.md`](docs/HANDOFF_OFFICE_20260601.md) — 사무실 인수인계
+> 3. ✅ [`docs/V40_1_FINAL_VERIFICATION_REPORT_20260601.md`](docs/V40_1_FINAL_VERIFICATION_REPORT_20260601.md) — v40.1 정리 완료 검증
 >
-> **⚠️ 다음 JS/CSS 변경 시 반드시**: `src/index.tsx`의 `?v=40.1` → `?v=40.2`로 증가시킬 것!
+> **⚠️ 다음 JS/CSS 변경 시 반드시**: `src/index.tsx`의 `?v=40.2` → `?v=40.3`으로 증가시킬 것!
 > (캐시 무효화, 잊으면 사용자 화면에 변경사항 안 보임)
 
 ---
