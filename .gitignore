@@ -8,3 +8,7 @@ dist/
 # Production snapshot (sensitive DB dumps)
 production-snapshot/
 production-snapshot-*.tar.gz
+
+# Production snapshots (v40.x) - downloaded via separate URL
+production-snapshot-v40.*/
+production-snapshot-v40.*.tar.gz
