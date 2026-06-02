@@ -26,9 +26,14 @@ function themeVars(settings?: Record<string, any>): string {
   const phc1 = safe(s.page_header_color1, '#1E3A8A');
   const phc2 = safe(s.page_header_color2, '#2563EB');
   const phc3 = safe(s.page_header_color3, '#3B82F6');
-  // 푸터 그라데이션 (2색)
-  const ftc1 = safe(s.footer_color1, '#1E3A8A');
-  const ftc2 = safe(s.footer_color2, '#1E40AF');
+  // 푸터 그라데이션 (2색) — v40.3.1 A안: 밝은 연청 배경
+  const ftc1 = safe(s.footer_color1, '#E8F2FF'); // 연청 라이트
+  const ftc2 = safe(s.footer_color2, '#D6E9FF'); // 연청 라이트(약간 진함)
+  // 푸터 글자색 (밝은 배경용 진한 남색 계열) — v40.3.1 A안
+  const ftText    = safe(s.footer_text_color,    '#1E3A8A'); // 본문 진한 네이비
+  const ftHeading = safe(s.footer_heading_color, '#0F172A'); // 소제목 거의 검정 네이비
+  const ftMuted   = safe(s.footer_muted_color,   '#475569'); // 보조/카피라이트 슬레이트
+  const ftHover   = safe(s.footer_hover_color,   '#1D4ED8'); // hover 블루
   // GNB 메뉴바 그라데이션 (2색)
   const gnbc1 = safe(s.gnb_bar_color1, '#2563EB');
   const gnbc2 = safe(s.gnb_bar_color2, '#3B82F6');
@@ -46,6 +51,10 @@ function themeVars(settings?: Record<string, any>): string {
       --page-header-c3: ${phc3};
       --footer-c1: ${ftc1};
       --footer-c2: ${ftc2};
+      --footer-text: ${ftText};
+      --footer-heading: ${ftHeading};
+      --footer-muted: ${ftMuted};
+      --footer-hover: ${ftHover};
       --gnb-bar-c1: ${gnbc1};
       --gnb-bar-c2: ${gnbc2};
       --input-bg: ${inputBg};
@@ -1187,6 +1196,40 @@ export function layoutCSS(settings?: Record<string, any>): string {
     .input-premium::placeholder {
       color: rgba(100,116,139,0.55);
     }
+
+    /* ── Footer 색상 (v40.3.1 A안: 밝은 연청 배경 + 진한 남색 글자) ──
+       data-has-bg="0" (배경 이미지 없음/연청 단색) 일 때만 적용.
+       Tailwind text-gray-*/text-white/text-slate-* 클래스를 스코프 오버라이드. */
+    .site-footer[data-has-bg="0"] { color: var(--footer-text); }
+    .site-footer[data-has-bg="0"] .text-gray-300,
+    .site-footer[data-has-bg="0"] .text-gray-400,
+    .site-footer[data-has-bg="0"] .text-gray-500 { color: var(--footer-text) !important; }
+    .site-footer[data-has-bg="0"] .text-gray-600,
+    .site-footer[data-has-bg="0"] .text-slate-600,
+    .site-footer[data-has-bg="0"] .text-slate-700 { color: var(--footer-muted) !important; }
+    .site-footer[data-has-bg="0"] .text-white,
+    .site-footer[data-has-bg="0"] .text-white\\/90,
+    .site-footer[data-has-bg="0"] h4 { color: var(--footer-heading) !important; }
+    /* hover 시 진한 블루 강조 */
+    .site-footer[data-has-bg="0"] a:hover,
+    .site-footer[data-has-bg="0"] .hover\\:text-white:hover { color: var(--footer-hover) !important; }
+    /* 흰색 반투명 데코(카드/구분선) → 남색 반투명으로 (배경이 밝아 흰색은 안 보임) */
+    .site-footer[data-has-bg="0"] [style*="rgba(255,255,255"] {
+      background-color: rgba(30,58,138,0.05) !important;
+      border-color: rgba(30,58,138,0.12) !important;
+    }
+    .site-footer[data-has-bg="0"] [style*="border-top: 1px solid rgba(255,255,255"] {
+      border-top-color: rgba(30,58,138,0.12) !important;
+    }
+    /* "빠른 상담 전화" 큰 번호: 흰→네이비 그라데이션이 밝은 배경에 안 보이므로 단색 처리 */
+    .site-footer[data-has-bg="0"] a[style*="-webkit-text-fill-color: transparent"] {
+      background: none !important;
+      -webkit-text-fill-color: var(--footer-heading) !important;
+      color: var(--footer-heading) !important;
+    }
+    /* 개인정보처리방침 링크: 밝은 배경에 emerald-400은 옅으므로 진한 그린 */
+    .site-footer[data-has-bg="0"] .text-emerald-400 { color: #059669 !important; }
+    .site-footer[data-has-bg="0"] .text-emerald-400:hover { color: #047857 !important; }
   </style>
 `;
 }

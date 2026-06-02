@@ -340,20 +340,52 @@ export function backgroundMediaPage() {
 
         <!-- 푸터 -->
         <div>
-          <p class="text-xs font-bold text-gray-500 uppercase mb-2"><i class="fas fa-shoe-prints mr-1"></i>푸터 그라데이션</p>
+          <p class="text-xs font-bold text-gray-500 uppercase mb-2"><i class="fas fa-shoe-prints mr-1"></i>푸터 배경 그라데이션 (연청)</p>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">시작 색상</label>
               <div class="flex gap-2 items-center">
-                <input type="text" data-key="footer_color1" class="setting-input flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="#1E3A8A">
-                <input type="color" data-color-for="footer_color1" class="w-10 h-10 rounded cursor-pointer border" value="#1E3A8A">
+                <input type="text" data-key="footer_color1" class="setting-input flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="#E8F2FF">
+                <input type="color" data-color-for="footer_color1" class="w-10 h-10 rounded cursor-pointer border" value="#E8F2FF">
               </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">끝 색상</label>
               <div class="flex gap-2 items-center">
-                <input type="text" data-key="footer_color2" class="setting-input flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="#1E40AF">
-                <input type="color" data-color-for="footer_color2" class="w-10 h-10 rounded cursor-pointer border" value="#1E40AF">
+                <input type="text" data-key="footer_color2" class="setting-input flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="#D6E9FF">
+                <input type="color" data-color-for="footer_color2" class="w-10 h-10 rounded cursor-pointer border" value="#D6E9FF">
+              </div>
+            </div>
+          </div>
+          <p class="text-xs text-gray-400 mt-1.5"><i class="fas fa-circle-info mr-1"></i>밝은 연청 배경에는 아래 글자색이 적용됩니다. (배경 이미지를 넣으면 자동으로 흰 글자로 전환)</p>
+          <p class="text-xs font-bold text-gray-500 uppercase mb-2 mt-4"><i class="fas fa-font mr-1"></i>푸터 글자색 (밝은 배경용)</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">본문 글자</label>
+              <div class="flex gap-2 items-center">
+                <input type="text" data-key="footer_text_color" class="setting-input flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="#1E3A8A">
+                <input type="color" data-color-for="footer_text_color" class="w-10 h-10 rounded cursor-pointer border" value="#1E3A8A">
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">소제목 글자</label>
+              <div class="flex gap-2 items-center">
+                <input type="text" data-key="footer_heading_color" class="setting-input flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="#0F172A">
+                <input type="color" data-color-for="footer_heading_color" class="w-10 h-10 rounded cursor-pointer border" value="#0F172A">
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">보조/저작권 글자</label>
+              <div class="flex gap-2 items-center">
+                <input type="text" data-key="footer_muted_color" class="setting-input flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="#475569">
+                <input type="color" data-color-for="footer_muted_color" class="w-10 h-10 rounded cursor-pointer border" value="#475569">
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">링크 hover 색상</label>
+              <div class="flex gap-2 items-center">
+                <input type="text" data-key="footer_hover_color" class="setting-input flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="#1D4ED8">
+                <input type="color" data-color-for="footer_hover_color" class="w-10 h-10 rounded cursor-pointer border" value="#1D4ED8">
               </div>
             </div>
           </div>
