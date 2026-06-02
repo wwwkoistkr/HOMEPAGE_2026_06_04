@@ -659,8 +659,8 @@ export function progressPage(items: ProgressItem[], page: number = 1, total: num
             <thead>
               <tr style="background: linear-gradient(135deg, #0F172A, #1E293B);">
                 <th class="text-center text-slate-300 f-text-xs font-semibold" style="padding:11px 10px">번호</th>
-                ${!categoryFilter ? '<th class="text-center text-slate-300 f-text-xs font-semibold" style="padding:11px 10px">사업분류</th>' : ''}
-                <th class="text-left text-slate-300 f-text-xs font-semibold" style="padding:11px 14px">제품명</th>
+                ${!categoryFilter ? '<th class="text-left text-slate-300 f-text-xs font-semibold" style="padding:11px 10px">사업분류</th>' : ''}
+                <th class="text-left text-slate-300 f-text-xs font-semibold pl-3 sm:pl-10 pr-3" style="padding-top:11px; padding-bottom:11px">제품명</th>
                 <th class="text-center text-slate-300 f-text-xs font-semibold" style="padding:11px 10px">${categoryFilter ? escapeHtml(meta.col2) : '등급'}</th>
                 <th class="text-center text-slate-300 f-text-xs font-semibold hidden sm:table-cell" style="padding:11px 10px">${categoryFilter ? escapeHtml(meta.col3) : '구분'}</th>
                 <th class="text-center text-slate-300 f-text-xs font-semibold hidden md:table-cell" style="padding:11px 10px">${categoryFilter ? escapeHtml(meta.col4) : '유형'}</th>
@@ -675,8 +675,8 @@ export function progressPage(items: ProgressItem[], page: number = 1, total: num
                 return `
               <tr class="border-t border-slate-100/70 hover:bg-blue-50/25 transition-colors" style="border-left:3px solid transparent;">
                 <td class="text-center text-slate-400 f-text-xs" style="padding:10px 10px">${startNum - i}</td>
-                ${!categoryFilter ? `<td class="text-center" style="padding:10px 10px"><span class="inline-flex items-center gap-1 rounded-full f-text-xs font-medium" style="padding:2px 8px; background:${cmColor}10; color:${cmColor}; white-space:nowrap;"><i class="fas ${cmIcon}" style="font-size:8px"></i>${escapeHtml(p.category)}</span></td>` : ''}
-                <td style="padding:10px 14px"><span class="font-medium text-slate-800 f-text-sm truncate block" style="max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(p.product_name)}</span></td>
+                ${!categoryFilter ? `<td class="text-left" style="padding:10px 10px"><span class="inline-flex items-center gap-1 rounded-full f-text-xs font-medium" style="padding:2px 8px; background:${cmColor}10; color:${cmColor}; white-space:nowrap;"><i class="fas ${cmIcon}" style="font-size:8px"></i>${escapeHtml(p.category)}</span></td>` : ''}
+                <td class="pl-3 sm:pl-10 pr-3" style="padding-top:10px; padding-bottom:10px"><span class="font-medium text-slate-800 f-text-sm truncate block" style="max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(p.product_name)}</span></td>
                 <td class="text-center" style="padding:10px 10px"><span class="inline-block bg-slate-100 text-slate-700 rounded font-mono font-medium f-text-xs" style="padding:2px 8px; white-space:nowrap"${isAliased(p.assurance_level) ? ` title="${escapeAttr(p.assurance_level || '')}"` : ''}>${escapeHtml(getGradeDisplay(p.assurance_level))}</span></td>
                 <td class="text-center text-slate-600 hidden sm:table-cell f-text-xs" style="padding:10px 10px; white-space:nowrap">${escapeHtml(p.cert_type || '-')}</td>
                 <td class="text-center text-slate-600 hidden md:table-cell f-text-xs" style="padding:10px 10px; white-space:nowrap">${escapeHtml(p.eval_type || '-')}</td>
@@ -799,7 +799,7 @@ export function serviceProgressContent(items: ProgressItem[], page: number = 1, 
           <thead>
             <tr style="background: linear-gradient(135deg, #0F172A, #1E293B);">
               <th class="text-center text-slate-300 f-text-xs font-semibold" style="padding:11px 10px">번호</th>
-              <th class="text-left text-slate-300 f-text-xs font-semibold" style="padding:11px 14px">제품명</th>
+              <th class="text-left text-slate-300 f-text-xs font-semibold pl-3 sm:pl-10 pr-3" style="padding-top:11px; padding-bottom:11px">제품명</th>
               <th class="text-center text-slate-300 f-text-xs font-semibold" style="padding:11px 10px">${categoryFilter ? escapeHtml(meta.col2) : '등급'}</th>
               <th class="text-center text-slate-300 f-text-xs font-semibold hidden sm:table-cell" style="padding:11px 10px">${categoryFilter ? escapeHtml(meta.col3) : '구분'}</th>
               <th class="text-center text-slate-300 f-text-xs font-semibold hidden md:table-cell" style="padding:11px 10px">${categoryFilter ? escapeHtml(meta.col4) : '유형'}</th>
@@ -810,7 +810,7 @@ export function serviceProgressContent(items: ProgressItem[], page: number = 1, 
             ${items.map((p, i) => `
             <tr class="border-t border-slate-100/70 hover:bg-blue-50/25 transition-colors">
               <td class="text-center text-slate-400 f-text-xs" style="padding:10px 10px">${startNum - i}</td>
-              <td style="padding:10px 14px">
+              <td class="pl-3 sm:pl-10 pr-3" style="padding-top:10px; padding-bottom:10px">
                 <span class="font-medium text-slate-800 f-text-sm truncate block" style="max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(p.product_name)}</span>
               </td>
               <td class="text-center" style="padding:10px 10px">
