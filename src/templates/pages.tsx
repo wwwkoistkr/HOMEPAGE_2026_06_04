@@ -1,6 +1,7 @@
 // KOIST - Service & Content Page Templates (v7.0 - Ultra Premium 4K/8K HiDPI)
 import type { SettingsMap, Department, DepPage, Notice, FAQ, ProgressItem } from '../types';
 import { sanitizeHtml, escapeHtml, escapeAttr, safeUrl, safeColor, safeFaIcon } from '../utils/sanitize';
+import { getGradeDisplay, isAliased } from '../utils/aliases';
 
 /* ══════════════════════════════════════════════════════════
    SHARED: Premium Page Header Component
@@ -599,13 +600,13 @@ export function progressPage(items: ProgressItem[], page: number = 1, total: num
       <!-- Data Table -->
       <div class="bg-white rounded-xl border border-slate-200/60 overflow-hidden" style="box-shadow: var(--shadow-sm);">
         <div class="overflow-x-auto">
-          <table class="w-full" style="table-layout:fixed; min-width:680px;">
+          <table class="w-full" style="table-layout:fixed; min-width:820px;">
             <colgroup>
               <col style="width:52px">
               ${!categoryFilter ? '<col style="width:100px">' : ''}
               <col style="width:auto">
-              <col style="width:90px">
-              <col style="width:88px" class="hidden sm:table-column">
+              <col style="width:220px">
+              <col style="width:140px" class="hidden sm:table-column">
               <col style="width:88px" class="hidden md:table-column">
               <col style="width:96px">
             </colgroup>
@@ -630,7 +631,7 @@ export function progressPage(items: ProgressItem[], page: number = 1, total: num
                 <td class="text-center text-slate-400 f-text-xs" style="padding:10px 10px">${startNum - i}</td>
                 ${!categoryFilter ? `<td class="text-center" style="padding:10px 10px"><span class="inline-flex items-center gap-1 rounded-full f-text-xs font-medium" style="padding:2px 8px; background:${cmColor}10; color:${cmColor}; white-space:nowrap;"><i class="fas ${cmIcon}" style="font-size:8px"></i>${escapeHtml(p.category)}</span></td>` : ''}
                 <td style="padding:10px 14px"><span class="font-medium text-slate-800 f-text-sm truncate block" style="max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(p.product_name)}</span></td>
-                <td class="text-center" style="padding:10px 10px"><span class="inline-block bg-slate-100 text-slate-700 rounded font-mono font-medium f-text-xs" style="padding:2px 8px; white-space:nowrap">${escapeHtml(p.assurance_level || '-')}</span></td>
+                <td class="text-center" style="padding:10px 10px"><span class="inline-block bg-slate-100 text-slate-700 rounded font-mono font-medium f-text-xs" style="padding:2px 8px; white-space:nowrap"${isAliased(p.assurance_level) ? ` title="${escapeAttr(p.assurance_level || '')}"` : ''}>${escapeHtml(getGradeDisplay(p.assurance_level))}</span></td>
                 <td class="text-center text-slate-600 hidden sm:table-cell f-text-xs" style="padding:10px 10px; white-space:nowrap">${escapeHtml(p.cert_type || '-')}</td>
                 <td class="text-center text-slate-600 hidden md:table-cell f-text-xs" style="padding:10px 10px; white-space:nowrap">${escapeHtml(p.eval_type || '-')}</td>
                 <td class="text-center" style="padding:10px 10px">${statusBadge(p.status)}</td>
@@ -740,12 +741,12 @@ export function serviceProgressContent(items: ProgressItem[], page: number = 1, 
     <!-- Table -->
     <div class="rounded-lg border border-slate-200/60 overflow-hidden" style="box-shadow: var(--shadow-xs);">
       <div class="overflow-x-auto">
-        <table class="w-full" style="table-layout:fixed; min-width:680px;">
+        <table class="w-full" style="table-layout:fixed; min-width:820px;">
           <colgroup>
             <col style="width:52px">
             <col style="width:auto">
-            <col style="width:90px">
-            <col style="width:88px" class="hidden sm:table-column">
+            <col style="width:220px">
+            <col style="width:140px" class="hidden sm:table-column">
             <col style="width:88px" class="hidden md:table-column">
             <col style="width:96px">
           </colgroup>
@@ -767,7 +768,7 @@ export function serviceProgressContent(items: ProgressItem[], page: number = 1, 
                 <span class="font-medium text-slate-800 f-text-sm truncate block" style="max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(p.product_name)}</span>
               </td>
               <td class="text-center" style="padding:10px 10px">
-                <span class="inline-block bg-slate-100 text-slate-700 rounded font-mono font-medium f-text-xs" style="padding:2px 8px; white-space:nowrap">${escapeHtml(p.assurance_level || '-')}</span>
+                <span class="inline-block bg-slate-100 text-slate-700 rounded font-mono font-medium f-text-xs" style="padding:2px 8px; white-space:nowrap"${isAliased(p.assurance_level) ? ` title="${escapeAttr(p.assurance_level || '')}"` : ''}>${escapeHtml(getGradeDisplay(p.assurance_level))}</span>
               </td>
               <td class="text-center text-slate-600 hidden sm:table-cell f-text-xs" style="padding:10px 10px; white-space:nowrap">${escapeHtml(p.cert_type || '-')}</td>
               <td class="text-center text-slate-600 hidden md:table-cell f-text-xs" style="padding:10px 10px; white-space:nowrap">${escapeHtml(p.eval_type || '-')}</td>
