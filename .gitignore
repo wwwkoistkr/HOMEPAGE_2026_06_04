@@ -4,3 +4,7 @@ dist/
 .dev.vars
 *.log
 .pm2/
+
+# Production snapshot (sensitive DB dumps)
+production-snapshot/
+production-snapshot-*.tar.gz
