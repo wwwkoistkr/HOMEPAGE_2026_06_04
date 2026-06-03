@@ -524,15 +524,18 @@ export function layoutCSS(settings?: Record<string, any>): string {
       overflow: hidden;
       border-bottom: 2px solid rgba(96,165,250,0.30);
     }
-    /* v41.0: 메뉴를 fluid-container 안에서 좌우 끝선에 균등 분배
-       → KOIST소개(좌측 끝) = KOLAS 기준선, 고객지원(우측 끝) = 전화 기준선 */
+    /* v42.3.2 (옵션1): 메뉴를 fluid-container 안에서 좌우 끝선에 균등 분배하되
+       메뉴 총폭이 컨테이너(--container-max)를 절대 넘지 않도록 강제.
+       → KOIST소개(좌측 끝) = 시뮬레이터 좌, 고객지원(우측 끝) = hero 텍스트영역 우 (모든 해상도 0px 정렬) */
     .gnb-nav-inner {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      /* v41.0: width:100% 제거 → fluid-container의 width(var(--container-max)) +
-         padding이 적용되어 TOP BAR(KOLAS) 콘텐츠와 동일한 좌우 기준선을 갖는다.
-         부모 .gnb-nav-bar의 justify-content:center가 박스를 중앙정렬한다. */
+      flex-wrap: nowrap;
+      /* v42.3.2: fluid-container의 width:var(--container-max)를 그대로 유지(width 미지정).
+         메뉴 항목 총폭이 컨테이너를 넘지 않도록 폰트/패딩/sep을 vw 비례 clamp로 축소(8K 기준 반응형).
+         고객지원(마지막 항목)이 컨테이너 우측 패딩 경계(=hero grid 우)에 정확히 멈춘다.
+         width:100%는 금지 — fluid-container의 컨테이너 폭을 깨고 부모 전체폭으로 확장됨. */
       height: 100%;
       position: relative;
       z-index: 2;
@@ -562,9 +565,10 @@ export function layoutCSS(settings?: Record<string, any>): string {
 
     /* GNB Link — v33 Full-Width Centered, 40% enlarged, high-contrast */
     .gnb-link {
-      padding: 0.35rem clamp(0.16rem, 0.4vw, 0.56rem);
-      /* v41.0: GNB 글자 20% 축소 (21.36px → 약 17.1px @1440) */
-      font-size: clamp(0.84rem, 0.672rem + 0.44vw, 1.104rem);
+      /* v42.3.2(옵션1): 11개 항목이 컨테이너 안에 수렴하도록 padding vw 비례 축소 */
+      padding: 0.35rem clamp(0.1rem, 0.28vw, 0.44rem);
+      /* v42.3.2(옵션1): 상한 1.104→1.02rem 축소 → 1920px 28px 오버플로 제거 */
+      font-size: clamp(0.84rem, 0.69rem + 0.4vw, 1.02rem);
       font-weight: 700;
       color: #FFFFFF;
       white-space: nowrap;
@@ -599,18 +603,27 @@ export function layoutCSS(settings?: Record<string, any>): string {
       border-radius: 50%;
       background: rgba(148,196,255,0.35);
       flex-shrink: 0;
-      margin: 0 clamp(2px, 0.3vw, 6px);
+      /* v42.3.2(옵션1): sep 간격 vw 비례 축소 → 메뉴 총폭 컨테이너 내 수렴 */
+      margin: 0 clamp(1px, 0.2vw, 4px);
     }
 
-    /* 4K+ GNB scaling */
+    /* 4K+ GNB scaling — v42.3.2(옵션1): 11개 항목이 컨테이너(--container-max) 안에
+       수렴하도록 폰트/패딩/sep을 컨테이너 폭 대비 안전 범위로 대폭 완화.
+       이전(1.28~1.68rem)은 메뉴 총폭이 컨테이너를 270~548px 초과 → 고객지원 우측 오버플로 발생. */
     @media (min-width: 2560px) {
-      .gnb-link { font-size: clamp(1.28rem, 1.12rem + 0.28vw, 1.68rem); }
+      /* container-max=1700px / 콘텐츠폭≈1620px @2560 → 안전 상한 1.18rem */
+      .gnb-link { font-size: clamp(1.04rem, 0.6rem + 0.78vw, 1.18rem); padding: 0.35rem clamp(0.14rem, 0.34vw, 0.5rem); }
+      .gnb-sep { margin: 0 clamp(2px, 0.22vw, 5px); }
     }
     @media (min-width: 3840px) {
-      .gnb-link { font-size: clamp(1.68rem, 1.36rem + 0.44vw, 2.24rem); }
+      /* container-max=2100px @3840 → 안전 상한 1.42rem */
+      .gnb-link { font-size: clamp(1.18rem, 0.5rem + 0.92vw, 1.42rem); padding: 0.35rem clamp(0.18rem, 0.4vw, 0.62rem); }
+      .gnb-sep { margin: 0 clamp(3px, 0.26vw, 7px); }
     }
     @media (min-width: 7680px) {
-      .gnb-link { font-size: clamp(2.56rem, 2.08rem + 0.56vw, 3.6rem); letter-spacing: 0em; }
+      /* container-max=2800px @7680 → 안전 상한 2.0rem */
+      .gnb-link { font-size: clamp(1.42rem, 0.4rem + 1.1vw, 2.0rem); padding: 0.35rem clamp(0.24rem, 0.42vw, 0.8rem); letter-spacing: 0em; }
+      .gnb-sep { margin: 0 clamp(4px, 0.28vw, 10px); }
     }
 
     /* ═══════════════════════════════════════════════
