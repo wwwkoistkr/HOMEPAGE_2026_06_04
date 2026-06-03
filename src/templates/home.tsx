@@ -988,36 +988,32 @@ export function homePage(opts: {
        → 텍스트(.unified-hero-left, order:2)   = 2열(38fr, 우측, 끝선 1371px='원'자 정렬)
        그리드 전체 좌우 끝(69~1371px)이 GNB 폭과 일치하여 좌우 균형 유지.
        align-items:stretch 로 양쪽 셀 높이를 동일화하여 짧은 텍스트 카드가 하단까지 늘어나 밑단이 일치한다.
-       모든 폭/간격은 fr/clamp/vw 반응형 단위 → 데스크탑↔모바일 연동 + 8K clamp 상한 유지.
-       v42.3-③: 원스톱(시뮬레이터) 카드를 오른쪽으로 +3cm(≈113px) 폭 확장.
-       cm 고정값 대신 fr 비율 조정으로 반응형 유지 → 62fr 38fr → 71fr 29fr.
-       (원스톱 785px→≈898px, 텍스트 481px→≈368px, 전체 우측끝 1371px 유지) */
+       모든 폭/간격은 fr/clamp/vw 반응형 단위 → 데스크탑↔모바일 연동 + 8K clamp 상한 유지. */
     .unified-hero-grid {
       display: grid;
-      grid-template-columns: 71fr 29fr;   /* v42.3-③: 1열=원스톱 71fr(좌, +3cm 확장) / 2열=텍스트 29fr(우) */
+      grid-template-columns: 62fr 38fr;   /* v42.2: 1열=원스톱 62fr(좌) / 2열=텍스트 38fr(우) */
       gap: clamp(1.5rem, 2.5vw, 2.5rem);
       align-items: stretch;      /* v42.0: 양쪽 카드 높이 동일화 → 하단 밑단 일치 */
       width: 100%;
       overflow: visible;
     }
     /* v42.2: order 로 좌우 배치 고정 (DOM 순서와 무관, hero_layout_swap 의존 없음).
-       v42.3-③: 비율 조정 — 텍스트=29fr(우, 끝선 1371px), 시뮬레이터=71fr(좌, 시작선 69px).
-       텍스트(.unified-hero-left)=order:2 → 2열(29fr, 우측, 끝선 1371px 정렬).
-       시뮬레이터(.unified-hero-right)=order:1 → 1열(71fr, 좌측, 시작선 69px 정렬). */
+       텍스트(.unified-hero-left)=order:2 → 2열(38fr, 우측, 끝선 1371px 정렬).
+       시뮬레이터(.unified-hero-right)=order:1 → 1열(62fr, 좌측, 시작선 69px 정렬). */
     .unified-hero-left {
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
       width: 100%;               /* v41.0: 그리드 셀 폭 그대로 (cm 시프트 제거) */
       min-width: 0;
-      order: 2;                  /* v42.3-③: 텍스트 우측 (29fr, 끝선 1371px) */
+      order: 2;                  /* v42.2: 텍스트 우측 (38fr, 끝선 1371px) */
     }
     .unified-hero-right {
       display: flex;
       flex-direction: column;
       width: 100%;               /* v41.0: 그리드 셀 폭 그대로 (cm 시프트 제거) */
       min-width: 0;
-      order: 1;                  /* v42.3-③: 원스톱(시뮬레이터) 좌측 (71fr, 시작선 69px, +3cm 확장) */
+      order: 1;                  /* v42.2: 원스톱(시뮬레이터) 좌측 (62fr, 시작선 69px) */
     }
     
     /* Simulator panel card — original height (no stretch) */
