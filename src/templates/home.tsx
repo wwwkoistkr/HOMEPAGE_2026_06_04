@@ -760,8 +760,8 @@ export function homePage(opts: {
       <!-- ═══ v32: Top row — Hero text + Contact side by side ═══ -->
       <div class="unified-hero-grid">
 
-        <!-- ═══════ HERO TEXT (v39.20: order로 좌/우 위치 동적 결정) ═══════ -->
-        <div class="unified-hero-left" data-aos="fade-right" data-aos-duration="700">
+        <!-- ═══════ HERO TEXT (v42.2: 우측 배치 → fade-left) ═══════ -->
+        <div class="unified-hero-left" data-aos="fade-left" data-aos-duration="700">
           <!-- Badge (v38.1 — KOIST logo + text ×3→60% shrink, 8K fluid) -->
           <div class="inline-flex items-center rounded-full hero-badge-pill" style="gap:clamp(6px,0.44vw,14px); padding:clamp(6px,0.44vw,12px) clamp(14px,1.02vw,36px); margin-bottom:clamp(0.59rem,0.81vw,1.57rem); background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.18); backdrop-filter: blur(12px);">
             <img src="${safeUrl(s.hero_badge_logo_url) || '/static/images/koist-circle-logo.png'}" alt="KOIST" loading="eager" style="height:clamp(20px,1.47vw,56px); width:clamp(20px,1.47vw,56px); border-radius:50%; object-fit:contain; flex-shrink:0;">
@@ -809,8 +809,8 @@ export function homePage(opts: {
           </div>
         </div>
 
-        <!-- ═══════ SIMULATOR PANEL (v39.20: order로 좌/우 위치 동적 결정) ═══════ -->
-        <div class="unified-hero-right" data-aos="fade-left" data-aos-duration="700" data-aos-delay="150">
+        <!-- ═══════ SIMULATOR PANEL (v42.2: 좌측 배치 → fade-right) ═══════ -->
+        <div class="unified-hero-right" data-aos="fade-right" data-aos-duration="700" data-aos-delay="150">
           <div class="unified-sim-panel" id="simCard">
             <!-- Panel Header — Dark Navy (8K fluid, admin-editable) -->
             <div class="unified-sim-header">
@@ -982,36 +982,38 @@ export function homePage(opts: {
     /* v41.0: cm 고정 오프셋 전면 제거 → fluid-container 폭(GNB와 동일)에 정확히 정렬.
        히어로 텍스트:시뮬레이터 = 55:45 (디자이너 권장 좌우 균형 비율).
        좌우 교체는 order 로만 제어, 모든 폭/간격은 fr/clamp/% 반응형 단위 사용. */
-    /* v42.1: 그리드 트랙은 DOM 소스 순서(1열=텍스트 .unified-hero-left, 2열=시뮬레이터 .unified-hero-right).
-       시뮬레이터(원스톱) 카드를 항상 넓은 폭(62fr)으로 유지 → 2열을 62fr로 설정.
-       swap OFF(기본)에서 시뮬레이터가 화면 우측(2열, order 기본)에 위치하므로,
-       원스톱 카드 우측 끝선이 fluid-container 우측 끝(GNB '고객지원'/'원'자, 1371px)에 정확히 정렬된다.
-       align-items:stretch 로 양쪽 셀 높이를 동일화하여 짧은 텍스트 카드가 하단까지 늘어나 밑단이 일치한다. */
+    /* v42.2: 좌우 카드 교체 — 원스톱(시뮬레이터) 카드를 좌측으로, 텍스트 카드를 우측으로.
+       CSS Grid + order 상호작용: order 가 낮은 항목이 첫 시각 트랙(1열)을 점유한다.
+       → 원스톱(.unified-hero-right, order:1) = 1열(62fr, 좌측, 시작선 69px 정렬)
+       → 텍스트(.unified-hero-left, order:2)   = 2열(38fr, 우측, 끝선 1371px='원'자 정렬)
+       그리드 전체 좌우 끝(69~1371px)이 GNB 폭과 일치하여 좌우 균형 유지.
+       align-items:stretch 로 양쪽 셀 높이를 동일화하여 짧은 텍스트 카드가 하단까지 늘어나 밑단이 일치한다.
+       모든 폭/간격은 fr/clamp/vw 반응형 단위 → 데스크탑↔모바일 연동 + 8K clamp 상한 유지. */
     .unified-hero-grid {
       display: grid;
-      grid-template-columns: 38fr 62fr;   /* v42.1: 1열=텍스트 38fr / 2열=원스톱 62fr (우측 끝선 정렬) */
+      grid-template-columns: 62fr 38fr;   /* v42.2: 1열=원스톱 62fr(좌) / 2열=텍스트 38fr(우) */
       gap: clamp(1.5rem, 2.5vw, 2.5rem);
-      align-items: stretch;      /* v42.0: 양쪽 카드 높이 동일화 → 하단 밑단 일치 (요청1) */
+      align-items: stretch;      /* v42.0: 양쪽 카드 높이 동일화 → 하단 밑단 일치 */
       width: 100%;
       overflow: visible;
     }
-    /* v42.1: order 로직 제거 → DOM 소스 순서로 고정.
-       텍스트(.unified-hero-left)=1열(38fr, 좌측), 시뮬레이터(.unified-hero-right)=2열(62fr, 우측).
-       이로써 원스톱 카드가 항상 화면 우측에 위치하고 우측 끝선이 1371px('원'자)에 정렬된다. */
+    /* v42.2: order 로 좌우 배치 고정 (DOM 순서와 무관, hero_layout_swap 의존 없음).
+       텍스트(.unified-hero-left)=order:2 → 2열(38fr, 우측, 끝선 1371px 정렬).
+       시뮬레이터(.unified-hero-right)=order:1 → 1열(62fr, 좌측, 시작선 69px 정렬). */
     .unified-hero-left {
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
       width: 100%;               /* v41.0: 그리드 셀 폭 그대로 (cm 시프트 제거) */
       min-width: 0;
-      order: 1;                  /* v42.1: 텍스트 항상 좌측 */
+      order: 2;                  /* v42.2: 텍스트 우측 (38fr, 끝선 1371px) */
     }
     .unified-hero-right {
       display: flex;
       flex-direction: column;
       width: 100%;               /* v41.0: 그리드 셀 폭 그대로 (cm 시프트 제거) */
       min-width: 0;
-      order: 2;                  /* v42.1: 원스톱(시뮬레이터) 항상 우측 */
+      order: 1;                  /* v42.2: 원스톱(시뮬레이터) 좌측 (62fr, 시작선 69px) */
     }
     
     /* Simulator panel card — original height (no stretch) */
