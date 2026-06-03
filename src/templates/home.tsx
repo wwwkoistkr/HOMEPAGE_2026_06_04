@@ -1362,10 +1362,10 @@ export function homePage(opts: {
           return `
         <a href="/services/${dSlug}" class="card-service-xl group block relative" style="--card-accent:${dColor}; padding:clamp(${padMin}rem, ${padVw}vw, ${padMax}rem);" data-aos="fade-up" data-aos-delay="${Math.min(i * 20, 180)}">
           ${dImg ? `
-          <div class="rounded-lg overflow-hidden transition-all duration-500 group-hover:scale-105 group-hover:shadow-lg mx-auto" style="width:clamp(${iconW}px,${iconVw}vw,${iconWMax}px); height:clamp(${iconW}px,${iconVw}vw,${iconWMax}px); margin-bottom:clamp(0.4rem,0.6vw,0.6rem); border: 1.5px solid ${dColor}20; box-shadow: 0 1px 8px ${dColor}10;">
-            <img src="${dImg}" alt="${dNameAttr}" class="w-full h-full object-cover" loading="lazy" decoding="async" style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;">
+          <div class="card-icon-box rounded-2xl overflow-hidden flex items-center justify-center transition-all duration-500 group-hover:scale-105 group-hover:shadow-lg mx-auto" style="width:clamp(${iconW}px,${iconVw}vw,${iconWMax}px); height:clamp(${iconW}px,${iconVw}vw,${iconWMax}px); margin-bottom:clamp(0.4rem,0.6vw,0.6rem);">
+            <img src="${dImg}" alt="${dNameAttr}" class="w-[78%] h-[78%] object-contain" loading="lazy" decoding="async" style="image-rendering: -webkit-optimize-contrast;">
           </div>` : `
-          <div class="rounded-lg flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:shadow-lg mx-auto" style="width:clamp(${iconW}px,${iconVw}vw,${iconWMax}px); height:clamp(${iconW}px,${iconVw}vw,${iconWMax}px); background: linear-gradient(135deg, ${dColor}15, ${dColor}08); margin-bottom:clamp(0.4rem,0.6vw,0.6rem);">
+          <div class="card-icon-box rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:shadow-lg mx-auto" style="width:clamp(${iconW}px,${iconVw}vw,${iconWMax}px); height:clamp(${iconW}px,${iconVw}vw,${iconWMax}px); margin-bottom:clamp(0.4rem,0.6vw,0.6rem);">
             <i class="fas ${dIcon}" style="color:${dColor}; font-size:clamp(1.2rem,2vw,1.8rem)"></i>
           </div>`}
           <h3 class="font-bold text-primary group-hover:text-accent transition-colors text-center" style="font-size:clamp(${fMin}rem,${fVw}vw,${fMax}rem); margin-bottom:2px; line-height:1.15; letter-spacing:-0.02em;">${escapeHtml(dept.name)}</h3>

@@ -1153,6 +1153,23 @@ export function layoutCSS(settings?: Record<string, any>): string {
     }
 
     /* ═══════════════════════════════════════════════
+       v41.0 OPTION② — 카드 아이콘 박스 통일 (라이트톤 + 투명 배경)
+       모든 부서 카드의 아이콘 박스를 동일한 중립 라이트톤으로 통일하여
+       이미지 아이콘은 투명 배경(object-contain)으로 자연스럽게 안착시킨다.
+       ═══════════════════════════════════════════════ */
+    .card-icon-box {
+      background: linear-gradient(160deg, #F8FAFF 0%, #EEF3FB 100%);
+      border: 1px solid rgba(203,213,225,0.55);
+      box-shadow: inset 0 1px 2px rgba(255,255,255,0.9),
+                  0 2px 6px rgba(30,41,59,0.05);
+    }
+    .card-service-xl:hover .card-icon-box {
+      border-color: rgba(148,163,184,0.55);
+      box-shadow: inset 0 1px 2px rgba(255,255,255,0.95),
+                  0 4px 12px rgba(30,41,59,0.10);
+    }
+
+    /* ═══════════════════════════════════════════════
        EAL INTERACTIVE TABS (v13)
        ═══════════════════════════════════════════════ */
     .eal-tab {
