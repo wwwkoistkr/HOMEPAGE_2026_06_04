@@ -774,10 +774,10 @@ export function homePage(opts: {
 
           <!-- CTA Buttons — 8K fluid (v38.1 font ×1.4) -->
           <div class="flex flex-wrap" style="gap:clamp(0.39rem,0.44vw,1.09rem); margin-bottom:clamp(0.98rem,1.27vw,2.74rem);">
-            <a href="${safeUrl(s.hero_btn_primary_url) || '/support/inquiry'}" class="btn-glow ripple-btn inline-flex items-center font-bold rounded-xl transition-all hover:scale-[1.03] active:scale-[0.98]" style="gap:clamp(4px,0.29vw,10px); padding:clamp(0.44rem,0.48vw,0.94rem) clamp(calc(0.88rem + 1.2cm),calc(1.02vw + 1.2cm),calc(2.20rem + 1.2cm)); font-size:clamp(0.966rem,0.812vw,3.92rem);">
+            <a href="${safeUrl(s.hero_btn_primary_url) || '/support/inquiry'}" class="btn-glow ripple-btn inline-flex items-center font-bold rounded-xl transition-all hover:scale-[1.03] active:scale-[0.98]" style="gap:clamp(4px,0.29vw,10px); padding:clamp(0.44rem,0.48vw,0.94rem) clamp(2.0rem,2.4vw,3.6rem); font-size:clamp(0.966rem,0.812vw,3.92rem);">
               <i class="fas ${safeFaIcon(s.hero_btn_primary_icon) || 'fa-paper-plane'}" style="font-size:clamp(0.50rem,0.36vw,0.86rem)"></i> <span data-admin-edit="hero_btn_primary">${escapeHtml(s.hero_btn_primary || '온라인 상담')}</span>
             </a>
-            <a href="${safeUrl(s.hero_btn_secondary_url) || '#services'}" class="btn-ghost ripple-btn inline-flex items-center font-bold rounded-xl transition-all hover:scale-[1.03] active:scale-[0.98]" style="gap:clamp(4px,0.29vw,10px); padding:clamp(0.44rem,0.48vw,0.94rem) clamp(calc(0.88rem + 1.2cm),calc(1.02vw + 1.2cm),calc(2.20rem + 1.2cm)); font-size:clamp(0.966rem,0.812vw,3.92rem);">
+            <a href="${safeUrl(s.hero_btn_secondary_url) || '#services'}" class="btn-ghost ripple-btn inline-flex items-center font-bold rounded-xl transition-all hover:scale-[1.03] active:scale-[0.98]" style="gap:clamp(4px,0.29vw,10px); padding:clamp(0.44rem,0.48vw,0.94rem) clamp(2.0rem,2.4vw,3.6rem); font-size:clamp(0.966rem,0.812vw,3.92rem);">
               <i class="fas ${safeFaIcon(s.hero_btn_secondary_icon) || 'fa-th-large'}" style="font-size:clamp(0.50rem,0.36vw,0.86rem)"></i> <span data-admin-edit="hero_btn_secondary">${escapeHtml(s.hero_btn_secondary || '사업분야 보기')}</span>
             </a>
           </div>
@@ -974,34 +974,31 @@ export function homePage(opts: {
       -moz-osx-font-smoothing: grayscale;
       text-rendering: geometricPrecision;
     }
-    /* v39.20: align-items:start (상단 맞춤), 좌우 교체는 order 로 제어 */
+    /* v41.0: cm 고정 오프셋 전면 제거 → fluid-container 폭(GNB와 동일)에 정확히 정렬.
+       히어로 텍스트:시뮬레이터 = 55:45 (디자이너 권장 좌우 균형 비율).
+       좌우 교체는 order 로만 제어, 모든 폭/간격은 fr/clamp/% 반응형 단위 사용. */
     .unified-hero-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 55fr 45fr;   /* v41.0: 55:45 좌우 균형 */
       gap: clamp(1.5rem, 2.5vw, 2.5rem);
-      align-items: start;        /* v39.20: HERO 상단을 SIMULATOR 상단에 맞춤 */
+      align-items: start;        /* HERO 상단을 SIMULATOR 상단에 맞춤 */
+      width: 100%;
       overflow: visible;
     }
     .unified-hero-left {
       display: flex;
       flex-direction: column;
-      justify-content: flex-start;  /* v39.20: 상단 정렬에 맞춰 변경 (기존 space-between) */
-      max-width: none;
-      width: calc(100% + 7cm);
-      ${heroLayoutSwap ? 'order: 2;' : '/* order: 1; (default) */'}  /* v39.20 */
-      /* v39.21: HERO 우측 시프트 (기존 -1.5cm + 사용자 +3cm = 1.5cm) */
-      ${heroLayoutSwap ? `margin-left: calc(-1.5cm + ${_heroOffsetRight}cm);` : ''}
+      justify-content: flex-start;
+      width: 100%;               /* v41.0: 그리드 셀 폭 그대로 (cm 시프트 제거) */
+      min-width: 0;
+      ${heroLayoutSwap ? 'order: 2;' : '/* order: 1; (default) */'}
     }
     .unified-hero-right {
       display: flex;
       flex-direction: column;
-      /* v39.21: SIM 좌측/위쪽 시프트 (사용자 -1.5cm 좌측, -1cm 위로) */
-      ${heroLayoutSwap
-        ? `margin-left: ${_simOffsetLeft}cm; margin-top: ${_simOffsetTop}cm;`
-        : 'margin-left: -1.5cm;'}
-      width: calc(100% + 2.5cm);
+      width: 100%;               /* v41.0: 그리드 셀 폭 그대로 (cm 시프트 제거) */
       min-width: 0;
-      ${heroLayoutSwap ? 'order: 1;' : '/* order: 2; (default) */'}  /* v39.20: 시뮬레이터를 좌측으로 */
+      ${heroLayoutSwap ? 'order: 1;' : '/* order: 2; (default) */'}  /* 시뮬레이터를 좌측으로 */
     }
     
     /* Simulator panel card — original height (no stretch) */
@@ -1080,7 +1077,7 @@ export function homePage(opts: {
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255,255,255,0.06);
       border-radius: clamp(7px,0.88vw,14px);
-      max-width: calc(380px + 1cm);
+      max-width: 380px;
     }
     @supports not (backdrop-filter: blur(1px)) {
       .hero-contact-card { background: rgba(10,15,30,0.88); }
@@ -1177,7 +1174,7 @@ export function homePage(opts: {
       .sim-panel-subtitle { font-size: 1.17rem !important; }
       .hero-contact-item { font-size: 1.26rem; gap: 13px; }
       .hero-contact-icon { width: 41px; height: 41px; font-size: 17px; border-radius: 10px; }
-      .hero-contact-card { max-width: calc(630px + 1cm); padding: 1.75rem 2.24rem; border-radius: 20px; }
+      .hero-contact-card { max-width: 630px; padding: 1.75rem 2.24rem; border-radius: 20px; }
       .hero-contact-card p { font-size: 1.33rem !important; }
       .hero-contact-label { font-size: 1.17rem !important; }
     }
@@ -1200,7 +1197,7 @@ export function homePage(opts: {
       .sim-panel-subtitle { font-size: 1.75rem !important; }
       .eal-tab { padding: 14px 0 !important; font-size: 1.75rem !important; }
       .prep-range::-webkit-slider-thumb { width: 44px !important; height: 44px !important; border-width: 5px !important; }
-      .hero-contact-card { max-width: calc(770px + 1cm); padding: 2.24rem 2.8rem; border-radius: 22px; border-width: 2px !important; }
+      .hero-contact-card { max-width: 770px; padding: 2.24rem 2.8rem; border-radius: 22px; border-width: 2px !important; }
       .hero-contact-icon { width: 53px; height: 53px; font-size: 21px; border-radius: 13px; }
       .hero-contact-item { font-size: 1.61rem; gap: 15px; }
       .hero-contact-grid { gap: 0.63rem 1.23rem; }
@@ -1229,7 +1226,7 @@ export function homePage(opts: {
       .sim-panel-subtitle { font-size: 3.5rem !important; }
       .eal-tab { padding: 28px 0 !important; font-size: 3.5rem !important; }
       .prep-range::-webkit-slider-thumb { width: 88px !important; height: 88px !important; border-width: 10px !important; }
-      .hero-contact-card { max-width: calc(1260px + 1cm); padding: 3.5rem 4.55rem; border-radius: 39px; border-width: 3px !important; }
+      .hero-contact-card { max-width: 1260px; padding: 3.5rem 4.55rem; border-radius: 39px; border-width: 3px !important; }
       .hero-contact-icon { width: 77px; height: 77px; font-size: 31px; border-radius: 18px; }
       .hero-contact-item { font-size: 2.52rem; gap: 22px; }
       .hero-contact-grid { gap: 0.98rem 1.93rem; }

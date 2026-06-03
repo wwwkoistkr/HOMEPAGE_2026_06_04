@@ -125,12 +125,13 @@ export function layout(opts: {
   <header id="gnb" class="fixed top-0 left-0 right-0 z-50" role="banner" style="border-bottom: none;">
 
     <!-- ══ TOP BAR: KOLAS + Logo + Phone ══ -->
+    <!-- v41.0: fluid-container로 GNB와 동일 기준선 정렬, cm 고정값 제거 -->
     <div class="gnb-top-bar">
-      <div style="width:100%;max-width:100%;padding:0 clamp(6px,0.4vw,10px);margin:0;">
-        <div class="flex items-center" style="height:100%;gap:19px;justify-content:flex-start;">
+      <div class="fluid-container" style="padding-top:0;padding-bottom:0;">
+        <div class="flex items-center" style="height:100%;gap:clamp(10px,1vw,19px);justify-content:flex-start;">
 
-          <!-- KOLAS Mark -->
-          <div class="hidden md:flex items-center shrink-0" style="padding:0;margin:0 0 0 5cm;">
+          <!-- KOLAS Mark (KOIST소개 기준선 위에 정렬: fluid-container 좌측 끝) -->
+          <div class="hidden md:flex items-center shrink-0" style="padding:0;margin:0;">
             <img src="${safeUrl(s.kolas_image_url) || '/static/images/kolas.png'}" alt="KOLAS 국제공인시험기관" loading="lazy" decoding="async" sizes="(min-width: 7680px) 110px, (min-width: 3840px) 70px, (min-width: 2560px) 55px, (max-width: 767px) 0px, 34px" style="height:clamp(22px, 19px + 0.7vw, 34px);" class="kolas-mark w-auto object-contain opacity-80 hover:opacity-100 transition-opacity" title="KOLAS 국제공인시험기관 인정 (KTL-F-588)" data-admin-edit="kolas_image">
           </div>
 
@@ -154,8 +155,8 @@ export function layout(opts: {
             `}
           </a>
 
-          <!-- Right: Phone + Mobile Menu -->
-          <div class="flex items-center shrink-0" style="gap:var(--space-xs);margin-left:auto;margin-right:15cm;">
+          <!-- Right: Phone + Mobile Menu (우측 fluid-container 끝선에 정렬) -->
+          <div class="flex items-center shrink-0" style="gap:var(--space-xs);margin-left:auto;margin-right:0;">
             <a href="tel:${phoneTelAttr}" class="hidden xl:inline-flex items-center text-white font-bold rounded-lg transition-all ripple-btn" style="gap: 6px; padding: clamp(0.35rem,0.5vw,0.5rem) clamp(0.6rem,0.8vw,0.9rem); font-size: clamp(0.75rem, 0.65rem + 0.30vw, 0.92rem); background: linear-gradient(135deg, rgba(59,130,246,0.85), rgba(6,182,212,0.85)); box-shadow: 0 4px 16px rgba(59,130,246,0.25), inset 0 1px 0 rgba(255,255,255,0.12); border-radius: clamp(8px,0.6vw,12px);">
               <i class="fas fa-phone" style="font-size:clamp(8px,0.6vw,11px)"></i>
               <span>${phoneDisplay}</span>
@@ -168,8 +169,9 @@ export function layout(opts: {
       </div>
     </div>
 
-    <!-- ══ GNB NAVIGATION BAR: Full-width centered, 40% enlarged ══ -->
+    <!-- ══ GNB NAVIGATION BAR: fluid-container 정렬, 20% 축소 (v41.0) ══ -->
     <div class="gnb-nav-bar hidden lg:flex">
+      <nav class="gnb-nav-inner fluid-container" aria-label="주 메뉴">
       ${(() => {
         const activeDeps = deps.filter(d => d.is_active);
         const navLinks = [
@@ -184,6 +186,7 @@ export function layout(opts: {
         // Join with separator dots
         return navLinks.join('<span class="gnb-sep" aria-hidden="true"></span>');
       })()}
+      </nav>
     </div>
 
     <!-- Mega Dropdown Panel (v38 - 2-row adaptive) -->

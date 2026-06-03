@@ -240,7 +240,8 @@ export function layoutCSS(settings?: Record<string, any>): string {
       :root {
         --container-pad: clamp(1.5rem, 3vw, 3rem);
       }
-      .gnb-link { font-size: clamp(1.05rem, 0.9rem + 0.4vw, 1.25rem); }
+      /* v41.0: GNB 글자 20% 축소 (모든 구간 비례) */
+      .gnb-link { font-size: clamp(0.84rem, 0.72rem + 0.32vw, 1.0rem); }
     }
 
     /* ── 4K Ultra-wide ── */
@@ -506,7 +507,9 @@ export function layoutCSS(settings?: Record<string, any>): string {
       -webkit-backdrop-filter: blur(24px) saturate(180%);
       display: flex;
       align-items: center;
-      padding: 0 clamp(12px, 1vw, 24px);
+      /* v41.0: 내부 fluid-container가 좌우 padding을 담당 → 중복 padding 제거하여
+         KOLAS와 KOIST소개(GNB)의 좌측 기준선을 정확히 일치시킴 */
+      padding: 0;
       border-bottom: 1px solid rgba(255,255,255,0.04);
     }
 
@@ -520,6 +523,19 @@ export function layoutCSS(settings?: Record<string, any>): string {
       position: relative;
       overflow: hidden;
       border-bottom: 2px solid rgba(96,165,250,0.30);
+    }
+    /* v41.0: 메뉴를 fluid-container 안에서 좌우 끝선에 균등 분배
+       → KOIST소개(좌측 끝) = KOLAS 기준선, 고객지원(우측 끝) = 전화 기준선 */
+    .gnb-nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      /* v41.0: width:100% 제거 → fluid-container의 width(var(--container-max)) +
+         padding이 적용되어 TOP BAR(KOLAS) 콘텐츠와 동일한 좌우 기준선을 갖는다.
+         부모 .gnb-nav-bar의 justify-content:center가 박스를 중앙정렬한다. */
+      height: 100%;
+      position: relative;
+      z-index: 2;
     }
     /* Subtle animated shimmer overlay */
     .gnb-nav-bar::before {
@@ -546,8 +562,9 @@ export function layoutCSS(settings?: Record<string, any>): string {
 
     /* GNB Link — v33 Full-Width Centered, 40% enlarged, high-contrast */
     .gnb-link {
-      padding: 0.35rem clamp(0.2rem, 0.5vw, 0.7rem);
-      font-size: clamp(1.05rem, 0.84rem + 0.55vw, 1.38rem);
+      padding: 0.35rem clamp(0.16rem, 0.4vw, 0.56rem);
+      /* v41.0: GNB 글자 20% 축소 (21.36px → 약 17.1px @1440) */
+      font-size: clamp(0.84rem, 0.672rem + 0.44vw, 1.104rem);
       font-weight: 700;
       color: #FFFFFF;
       white-space: nowrap;
@@ -587,13 +604,13 @@ export function layoutCSS(settings?: Record<string, any>): string {
 
     /* 4K+ GNB scaling */
     @media (min-width: 2560px) {
-      .gnb-link { font-size: clamp(1.6rem, 1.4rem + 0.35vw, 2.1rem); }
+      .gnb-link { font-size: clamp(1.28rem, 1.12rem + 0.28vw, 1.68rem); }
     }
     @media (min-width: 3840px) {
-      .gnb-link { font-size: clamp(2.1rem, 1.7rem + 0.55vw, 2.8rem); }
+      .gnb-link { font-size: clamp(1.68rem, 1.36rem + 0.44vw, 2.24rem); }
     }
     @media (min-width: 7680px) {
-      .gnb-link { font-size: clamp(3.2rem, 2.6rem + 0.7vw, 4.5rem); letter-spacing: 0em; }
+      .gnb-link { font-size: clamp(2.56rem, 2.08rem + 0.56vw, 3.6rem); letter-spacing: 0em; }
     }
 
     /* ═══════════════════════════════════════════════
