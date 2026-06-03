@@ -660,8 +660,8 @@ for (const page of adminPages) {
         <p class="text-gray-400"><i class="fas fa-spinner fa-spin mr-1"></i> 데이터를 불러오는 중...</p>
       </div>
       ${xlsxScript}
-      <script src="/static/js/admin-fetch.js?v=41.0"></script>
-      <script src="/static/js/${jsFile}.js?v=41.0"></script>
+      <script src="/static/js/admin-fetch.js?v=42.0"></script>
+      <script src="/static/js/${jsFile}.js?v=42.0"></script>
     `;
     return c.html(adminDashboardPage(content, page, settings.logo_url || ''));
   });

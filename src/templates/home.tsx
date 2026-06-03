@@ -763,7 +763,7 @@ export function homePage(opts: {
           <!-- Badge (v38.1 — KOIST logo + text ×3→60% shrink, 8K fluid) -->
           <div class="inline-flex items-center rounded-full hero-badge-pill" style="gap:clamp(6px,0.44vw,14px); padding:clamp(6px,0.44vw,12px) clamp(14px,1.02vw,36px); margin-bottom:clamp(0.59rem,0.81vw,1.57rem); background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.18); backdrop-filter: blur(12px);">
             <img src="${safeUrl(s.hero_badge_logo_url) || '/static/images/koist-circle-logo.png'}" alt="KOIST" loading="eager" style="height:clamp(20px,1.47vw,56px); width:clamp(20px,1.47vw,56px); border-radius:50%; object-fit:contain; flex-shrink:0;">
-            <span class="text-blue-300 font-semibold tracking-wide" data-admin-edit="hero_badge_text" style="font-size:clamp(1.242rem,0.918vw,4.41rem); font-family:'Inter','Noto Sans KR',sans-serif; letter-spacing:0.04em;">${escapeHtml(s.hero_badge_text || 'Korean Information Security Technology')}</span>
+            <span class="text-blue-300 font-semibold tracking-wide" data-admin-edit="hero_badge_text" style="font-size:clamp(0.68rem,0.73vw,3.5rem); font-family:'Inter','Noto Sans KR',sans-serif; letter-spacing:0.04em;">${escapeHtml(s.hero_badge_text || 'Korean Information Security Technology')}</span>
           </div>
 
           <!-- v36: Headline removed, Subtitle upgraded to h1 (×2 size, hero position) -->
@@ -774,17 +774,18 @@ export function homePage(opts: {
 
           <!-- CTA Buttons — 8K fluid (v38.1 font ×1.4) -->
           <div class="flex flex-wrap" style="gap:clamp(0.39rem,0.44vw,1.09rem); margin-bottom:clamp(0.98rem,1.27vw,2.74rem);">
-            <a href="${safeUrl(s.hero_btn_primary_url) || '/support/inquiry'}" class="btn-glow ripple-btn inline-flex items-center font-bold rounded-xl transition-all hover:scale-[1.03] active:scale-[0.98]" style="gap:clamp(4px,0.29vw,10px); padding:clamp(0.44rem,0.48vw,0.94rem) clamp(2.0rem,2.4vw,3.6rem); font-size:clamp(0.966rem,0.812vw,3.92rem);">
+            <a href="${safeUrl(s.hero_btn_primary_url) || '/support/inquiry'}" class="btn-glow ripple-btn inline-flex items-center font-bold rounded-xl transition-all hover:scale-[1.03] active:scale-[0.98]" style="gap:clamp(4px,0.29vw,10px); padding:clamp(0.44rem,0.48vw,0.94rem) clamp(2.0rem,2.4vw,3.6rem); font-size:clamp(0.68rem,0.73vw,3.5rem);">
               <i class="fas ${safeFaIcon(s.hero_btn_primary_icon) || 'fa-paper-plane'}" style="font-size:clamp(0.50rem,0.36vw,0.86rem)"></i> <span data-admin-edit="hero_btn_primary">${escapeHtml(s.hero_btn_primary || '온라인 상담')}</span>
             </a>
-            <a href="${safeUrl(s.hero_btn_secondary_url) || '#services'}" class="btn-ghost ripple-btn inline-flex items-center font-bold rounded-xl transition-all hover:scale-[1.03] active:scale-[0.98]" style="gap:clamp(4px,0.29vw,10px); padding:clamp(0.44rem,0.48vw,0.94rem) clamp(2.0rem,2.4vw,3.6rem); font-size:clamp(0.966rem,0.812vw,3.92rem);">
+            <a href="${safeUrl(s.hero_btn_secondary_url) || '#services'}" class="btn-ghost ripple-btn inline-flex items-center font-bold rounded-xl transition-all hover:scale-[1.03] active:scale-[0.98]" style="gap:clamp(4px,0.29vw,10px); padding:clamp(0.44rem,0.48vw,0.94rem) clamp(2.0rem,2.4vw,3.6rem); font-size:clamp(0.68rem,0.73vw,3.5rem);">
               <i class="fas ${safeFaIcon(s.hero_btn_secondary_icon) || 'fa-th-large'}" style="font-size:clamp(0.50rem,0.36vw,0.86rem)"></i> <span data-admin-edit="hero_btn_secondary">${escapeHtml(s.hero_btn_secondary || '사업분야 보기')}</span>
             </a>
           </div>
 
           <!-- ═══════ Hero Contact Card (8K fluid, admin-editable) ═══════ -->
-          <div class="hero-contact-card" data-aos="fade-up" data-aos-delay="200">
-            <p class="text-slate-300/90 font-bold hero-contact-label" data-admin-edit="hero_contact_label" style="font-size:clamp(0.69rem,0.73vw,3.5rem); margin-bottom:clamp(0.49rem,0.66vw,1.41rem); letter-spacing:0.01em; text-rendering:geometricPrecision;">${escapeHtml(s.hero_contact_label || '국가 시험·인증 전문기관 정보보안 기술을 완성')}</p>
+          <!-- v42.0: margin-top:auto 로 카드를 셀 하단으로 밀어 시뮬레이터 카드 밑단과 일치 (요청1) -->
+          <div class="hero-contact-card" data-aos="fade-up" data-aos-delay="200" style="margin-top:auto;">
+            <p class="text-slate-300/90 font-bold hero-contact-label" data-admin-edit="hero_contact_label" style="font-size:clamp(0.68rem,0.73vw,3.5rem); margin-bottom:clamp(0.49rem,0.66vw,1.41rem); letter-spacing:0.01em; text-rendering:geometricPrecision;">${escapeHtml(s.hero_contact_label || '국가 시험·인증 전문기관 정보보안 기술을 완성')}</p>
             <div class="hero-contact-grid">
               <div class="hero-contact-item">
                 <div class="hero-contact-icon"><i class="fas fa-phone"></i></div>
@@ -837,7 +838,8 @@ export function homePage(opts: {
               </div>
 
               <!-- Preparation Slider — 8K Ultra-Sharp (admin-editable) -->
-              <div class="rounded-xl" style="padding:clamp(0.5rem,0.52vw,1.12rem) clamp(0.7rem,0.73vw,1.44rem); margin-bottom:clamp(0.6rem,0.68vw,1.28rem); background: linear-gradient(135deg, rgba(16,185,129,0.035), rgba(59,130,246,0.025)); border: clamp(1px,0.05vw,4px) solid rgba(16,185,129,0.10);">
+              <!-- v42.0: 슬라이드 섹션 세로 10% 축소 (상하 패딩·하단마진·트랙 높이 ×0.9, 좌우 유지) -->
+              <div class="rounded-xl" style="padding:clamp(0.45rem,0.47vw,1.01rem) clamp(0.7rem,0.73vw,1.44rem); margin-bottom:clamp(0.54rem,0.61vw,1.15rem); background: linear-gradient(135deg, rgba(16,185,129,0.035), rgba(59,130,246,0.025)); border: clamp(1px,0.05vw,4px) solid rgba(16,185,129,0.10);">
                 <div class="flex items-center" style="gap:clamp(0.4rem,0.47vw,0.96rem)">
                   <div class="flex items-center shrink-0" style="gap:clamp(3px,0.26vw,8px)">
                     <i class="fas fa-clipboard-check text-emerald-500" style="font-size:clamp(10px,0.63vw,20px)"></i>
@@ -845,7 +847,7 @@ export function homePage(opts: {
                   </div>
                   <div class="flex-1 flex items-center" style="gap:clamp(0.2rem,0.31vw,0.64rem)">
                     <span class="text-slate-400 shrink-0" style="font-size:clamp(9px,0.52vw,16px); font-weight:600;">1</span>
-                    <div class="flex-1 relative" style="height:clamp(30px,2.08vw,60px);">
+                    <div class="flex-1 relative" style="height:clamp(27px,1.87vw,54px);">
                       <div class="absolute left-0 right-0" style="top:50%; transform:translateY(-50%); height:clamp(6px,0.42vw,12px); border-radius:clamp(3px,0.21vw,6px); background: linear-gradient(90deg, ${cfg.trackColor1} 0%, ${cfg.trackColor2} 25%, ${cfg.trackColor3} 60%, ${cfg.trackColor4} 100%); opacity:${cfg.trackOpacity};"></div>
                       <div id="prepFill" class="absolute left-0" style="top:50%; transform:translateY(-50%); height:clamp(6px,0.42vw,12px); border-radius:clamp(3px,0.21vw,6px); width:50%; background: linear-gradient(90deg, ${cfg.trackColor1} 0%, ${cfg.trackColor2} 30%, ${cfg.trackColor3} 70%, ${cfg.trackColor4} 100%); transition: width 0.12s ease; box-shadow:0 2px 6px rgba(0,0,0,0.08);"></div>
                       <input type="range" id="prepSlider" min="1" max="100" step="1" value="50"
@@ -860,7 +862,8 @@ export function homePage(opts: {
                   </div>
                 </div>
                 <!-- Level guide dots (admin-editable) -->
-                <div class="flex items-center justify-between" style="margin-top:clamp(3px,0.21vw,8px); padding:0 0 0 clamp(65px,5.73vw,140px);">
+                <!-- v42.0: 슬라이드 섹션 세로 축소 일환 - 상단 마진 10% 축소 -->
+                <div class="flex items-center justify-between" style="margin-top:clamp(3px,0.19vw,7px); padding:0 0 0 clamp(65px,5.73vw,140px);">
                   <div class="flex items-center" style="gap:clamp(2px,0.16vw,4px)"><span class="inline-block rounded-full" style="width:clamp(4px,0.31vw,8px); height:clamp(4px,0.31vw,8px); background:${cfg.trackColor1};"></span><span class="text-slate-400 font-medium" data-admin-edit="sim_slider_level1" style="font-size:clamp(8px,0.63vw,3rem)">${escapeHtml(s.sim_slider_level1 || '미흡')}</span></div>
                   <div class="flex items-center" style="gap:clamp(2px,0.16vw,4px)"><span class="inline-block rounded-full" style="width:clamp(4px,0.31vw,8px); height:clamp(4px,0.31vw,8px); background:${cfg.trackColor2};"></span><span class="text-slate-400 font-medium" data-admin-edit="sim_slider_level2" style="font-size:clamp(8px,0.63vw,3rem)">${escapeHtml(s.sim_slider_level2 || '보통')}</span></div>
                   <div class="flex items-center" style="gap:clamp(2px,0.16vw,4px)"><span class="inline-block rounded-full" style="width:clamp(4px,0.31vw,8px); height:clamp(4px,0.31vw,8px); background:${cfg.trackColor3};"></span><span class="text-slate-400 font-medium" data-admin-edit="sim_slider_level3" style="font-size:clamp(8px,0.63vw,3rem)">${escapeHtml(s.sim_slider_level3 || '양호')}</span></div>
@@ -977,11 +980,15 @@ export function homePage(opts: {
     /* v41.0: cm 고정 오프셋 전면 제거 → fluid-container 폭(GNB와 동일)에 정확히 정렬.
        히어로 텍스트:시뮬레이터 = 55:45 (디자이너 권장 좌우 균형 비율).
        좌우 교체는 order 로만 제어, 모든 폭/간격은 fr/clamp/% 반응형 단위 사용. */
+    /* v42.0: 시뮬레이터(원스톱) 카드 폭을 62fr로 확대 → 화면 좌측 컬럼이 넓어져
+       카드 우측 끝선이 fluid-container 우측 끝(GNB '고객지원' '고'자)까지 확장.
+       텍스트 카드는 38fr로 조정. align-items:stretch 로 양쪽 셀 높이를 동일화하여
+       짧은 텍스트 카드가 시뮬레이터 카드 하단까지 늘어나 밑단이 일치한다. */
     .unified-hero-grid {
       display: grid;
-      grid-template-columns: 55fr 45fr;   /* v41.0: 55:45 좌우 균형 */
+      grid-template-columns: 62fr 38fr;   /* v42.0: 원스톱 카드 우측 끝선 확장 (요청3) */
       gap: clamp(1.5rem, 2.5vw, 2.5rem);
-      align-items: start;        /* HERO 상단을 SIMULATOR 상단에 맞춤 */
+      align-items: stretch;      /* v42.0: 양쪽 카드 높이 동일화 → 하단 밑단 일치 (요청1) */
       width: 100%;
       overflow: visible;
     }

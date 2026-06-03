@@ -393,7 +393,8 @@ export function layout(opts: {
       <div class="grid grid-cols-1 md:grid-cols-12" style="gap: clamp(1.5rem, 2.5vw, 3rem)">
 
         <!-- Company Info (v31 - 2.5x footer text + logo) -->
-        <div class="md:col-span-5">
+        <!-- v42.0: 전화 카드 확대를 위해 5→4 col (12컬럼 총합 유지: 4+3+2+3) -->
+        <div class="md:col-span-4">
           <div style="margin-bottom: var(--space-lg)">
             <div class="inline-flex items-center rounded-xl" style="padding: var(--space-sm) var(--space-md); background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);">
               <img src="/static/images/logo-horizontal.png" alt="${siteNameEsc}" loading="lazy" decoding="async" sizes="(min-width: 7680px) 120px, (min-width: 3840px) 80px, (min-width: 2560px) 64px, 48px" style="height:clamp(32px, 26px + 0.9vw, 48px)" class="footer-logo w-auto object-contain opacity-90">
@@ -440,10 +441,11 @@ export function layout(opts: {
         </div>
 
         <!-- Phone Card -->
-        <div class="md:col-span-2">
+        <!-- v42.0: 카드 폭 2→3 col 확대(우측으로 늘림) + 전화번호 폰트 50% 축소 + nowrap → 한 줄 표시 -->
+        <div class="md:col-span-3">
           <div class="rounded-xl" style="padding: var(--space-md); background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
             <p class="f-text-sm text-gray-600 font-medium" style="margin-bottom: 8px">빠른 상담 전화</p>
-            <a href="tel:${phoneTelAttr}" class="font-black tracking-tight hover:opacity-80 transition-opacity block" style="font-size: var(--text-2xl); background: linear-gradient(135deg, #FFFFFF, #93C5FD); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${phoneDisplay}</a>
+            <a href="tel:${phoneTelAttr}" class="font-black tracking-tight hover:opacity-80 transition-opacity block" style="font-size: clamp(0.775rem, 0.64rem + 0.39vw, 1.075rem); white-space: nowrap; background: linear-gradient(135deg, #FFFFFF, #93C5FD); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${phoneDisplay}</a>
           </div>
           <div class="mt-4 space-y-2.5 f-text-sm">
             <a href="/support/faq" class="hover:text-white transition-colors inline-flex items-center text-gray-500 hover:translate-x-1 transform transition-all" style="gap:6px"><span class="w-1 h-1 rounded-full" style="background: linear-gradient(135deg, #3B82F6, #06B6D4);"></span>FAQ</a>
