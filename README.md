@@ -1,6 +1,18 @@
-# KOIST Website v42.0
+# KOIST Website v42.1
 
-> ## 🆕 v42.0 변경 사항 (2026-06-03)
+> ## 🆕 v42.1 변경 사항 (2026-06-03)
+>
+> **디자인 보정(시나리오 A)**: 원스톱(시뮬레이터) 카드를 화면 **우측**으로 이동시켜 그 우측 끝선을 `fluid-container` 우측 끝(=GNB "고객지원"의 "원"자 끝선, **1371px @1440**)에 정확히 정렬 → 히어로 좌우 균형 확보.
+>
+> 1. **좌우 배치 고정(원스톱 카드 우측 이동)**: `.unified-hero-grid`의 `grid-template-columns: 62fr 38fr → 38fr 62fr`. CSS `order`를 조건부 로직 없이 **하드코딩**(`.unified-hero-left{order:1}` = 텍스트 좌측 38fr / `.unified-hero-right{order:2}` = 원스톱 우측 62fr).
+> 2. **`hero_layout_swap` 설정 의존 제거**: DB `site_settings.hero_layout_swap` 값이 더 이상 히어로 레이아웃에 영향을 주지 않도록 `heroLayoutSwap` 변수와 `order` 조건부 분기를 전부 제거(레이아웃 결정성 확보).
+> 3. **AOS 애니메이션 고정**: 텍스트 카드 `fade-right`, 원스톱 카드 `fade-left`로 고정.
+>
+> **검증**: 원스톱 카드 우측 끝 = 1371px, GNB "고객지원"("원"자) 우측 끝 = 1371px → **차이 0px(완벽 정렬)**. 데스크탑(1440)·모바일(390) Playwright 스크린샷 검증 완료. 8K 화질·반응형 제약 유지.
+>
+> ---
+
+> ## v42.0 변경 사항 (2026-06-03)
 >
 > **사용자 요청 4건 + 슬라이드 축소**: 히어로 카드 균형/정렬 미세 조정.
 >
