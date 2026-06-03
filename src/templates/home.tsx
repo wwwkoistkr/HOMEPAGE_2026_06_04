@@ -764,13 +764,13 @@ export function homePage(opts: {
         <div class="unified-hero-left" data-aos="fade-left" data-aos-duration="700">
           <!-- Badge (v38.1 — KOIST logo + text ×3→60% shrink, 8K fluid) -->
           <div class="inline-flex items-center rounded-full hero-badge-pill" style="gap:clamp(6px,0.44vw,14px); padding:clamp(6px,0.44vw,12px) clamp(14px,1.02vw,36px); margin-bottom:clamp(0.59rem,0.81vw,1.57rem); background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.18); backdrop-filter: blur(12px);">
-            <img src="${safeUrl(s.hero_badge_logo_url) || '/static/images/koist-circle-logo.png'}" alt="KOIST" loading="eager" style="height:clamp(20px,1.47vw,56px); width:clamp(20px,1.47vw,56px); border-radius:50%; object-fit:contain; flex-shrink:0;">
-            <span class="text-blue-300 font-semibold tracking-wide" data-admin-edit="hero_badge_text" style="font-size:clamp(0.68rem,0.73vw,3.5rem); font-family:'Inter','Noto Sans KR',sans-serif; letter-spacing:0.04em;">${escapeHtml(s.hero_badge_text || 'Korean Information Security Technology')}</span>
+            <img src="${safeUrl(s.hero_badge_logo_url) || '/static/images/koist-circle-logo.png'}" alt="KOIST" loading="eager" style="height:clamp(25px,1.84vw,70px); width:clamp(25px,1.84vw,70px); border-radius:50%; object-fit:contain; flex-shrink:0;">
+            <span class="text-blue-300 font-semibold tracking-wide" data-admin-edit="hero_badge_text" style="font-size:clamp(0.85rem,0.91vw,4.375rem); font-family:'Inter','Noto Sans KR',sans-serif; letter-spacing:0.04em;">${escapeHtml(s.hero_badge_text || 'Korean Information Security Technology')}</span>
           </div>
 
           <!-- v36: Headline removed, Subtitle upgraded to h1 (×2 size, hero position) -->
           <!-- v39.0: hero_line2\ub294 HTML \ud5c8\uc6a9 \ud0a4 (admin \uc778\ub77c\uc778 \ud3b8\uc9d1) \ub610\ub294 sanitizeHtml \uc801\uc6a9 -->
-          <h1 class="text-white font-bold hero-subtitle-promoted" data-admin-edit="hero_line2" style="font-size:clamp(1.38rem, 1.32vw, 6.3rem); line-height:1.25; margin-bottom:clamp(0.88rem,1.09vw,2.35rem); max-width:clamp(672px,49vw,2520px); letter-spacing:-0.02em; -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision;">
+          <h1 class="text-white font-bold hero-subtitle-promoted" data-admin-edit="hero_line2" style="font-size:clamp(1.17rem, 1.12vw, 5.36rem); line-height:1.25; margin-bottom:clamp(0.88rem,1.09vw,2.35rem); max-width:clamp(672px,49vw,2520px); letter-spacing:-0.02em; -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision;">
             ${s.hero_line2 ? sanitizeHtml(s.hero_line2) : 'IT제품 보안성 평가·인증의 원스톱 서비스'}
           </h1>
 
@@ -787,7 +787,7 @@ export function homePage(opts: {
           <!-- ═══════ Hero Contact Card (8K fluid, admin-editable) ═══════ -->
           <!-- v42.0: margin-top:auto 로 카드를 셀 하단으로 밀어 시뮬레이터 카드 밑단과 일치 (요청1) -->
           <div class="hero-contact-card" data-aos="fade-up" data-aos-delay="200" style="margin-top:auto;">
-            <p class="text-slate-300/90 font-bold hero-contact-label" data-admin-edit="hero_contact_label" style="font-size:clamp(0.68rem,0.73vw,3.5rem); margin-bottom:clamp(0.49rem,0.66vw,1.41rem); letter-spacing:0.01em; text-rendering:geometricPrecision;">${escapeHtml(s.hero_contact_label || '국가 시험·인증 전문기관 정보보안 기술을 완성')}</p>
+            <p class="text-slate-300/90 font-bold hero-contact-label" data-admin-edit="hero_contact_label" style="font-size:clamp(0.82rem,0.88vw,4.2rem); margin-bottom:clamp(0.49rem,0.66vw,1.41rem); letter-spacing:0.01em; text-rendering:geometricPrecision; white-space:nowrap;">${escapeHtml(s.hero_contact_label || '국가 시험·인증 전문기관 정보보안 기술을 완성')}</p>
             <div class="hero-contact-grid">
               <div class="hero-contact-item">
                 <div class="hero-contact-icon"><i class="fas fa-phone"></i></div>
@@ -879,12 +879,12 @@ export function homePage(opts: {
                 <div>
                   <div class="flex justify-between items-center" style="margin-bottom:clamp(3px,0.21vw,6px)">
                     <span class="text-slate-500 font-semibold flex items-center" style="gap:clamp(3px,0.21vw,6px); font-size:clamp(0.68rem,0.73vw,3.5rem)"><span class="inline-block rounded-full" style="width:clamp(5px,0.36vw,10px); height:clamp(5px,0.36vw,10px); background: linear-gradient(135deg, #94A3B8, #64748B);"></span><span data-admin-edit="sim_label_traditional">${escapeHtml(s.sim_label_traditional || 'CCRA평가일수')}</span></span>
-                    <span id="ealGeneralTotal" class="text-slate-400 font-bold" style="font-size:clamp(1.02rem,1.095vw,5.25rem)">약 24개월</span>
+                    <span id="ealGeneralTotal" class="text-slate-400 font-bold" style="font-size:clamp(0.77rem,0.82vw,3.94rem); white-space:nowrap;">약 24개월</span>
                   </div>
                   <div class="relative rounded-xl overflow-hidden" style="height:clamp(32px,2.34vw,72px); background: linear-gradient(90deg, #F1F5F9, #E2E8F0);">
                     <div id="ealGeneralBar" class="bar-animate eal-bar absolute left-0 top-0 h-full rounded-xl flex items-center" style="width:100%; background: linear-gradient(90deg, ${cfg.genPrepColor} 0%, ${cfg.genPrepColor} 50%, ${cfg.genEvalColor} 50%, ${cfg.genEvalColor} 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 2px 6px rgba(0,0,0,0.06);">
-                      <span id="ealGeneralPrep" class="absolute text-white font-bold" style="left:clamp(6px,0.47vw,14px); font-size:clamp(0.9rem,1.02vw,4.875rem); text-shadow:0 1px 4px rgba(0,0,0,0.35); letter-spacing:-0.01em;">준비 12개월</span>
-                      <span id="ealGeneralEval" class="absolute text-white font-bold" style="right:clamp(6px,0.47vw,14px); font-size:clamp(0.9rem,1.02vw,4.875rem); text-shadow:0 1px 4px rgba(0,0,0,0.35); letter-spacing:-0.01em;">평가 12개월</span>
+                      <span id="ealGeneralPrep" class="absolute text-white font-bold" style="left:clamp(6px,0.47vw,14px); font-size:clamp(0.68rem,0.77vw,3.66rem); text-shadow:0 1px 4px rgba(0,0,0,0.35); letter-spacing:-0.01em; white-space:nowrap;">준비 12개월</span>
+                      <span id="ealGeneralEval" class="absolute text-white font-bold" style="right:clamp(6px,0.47vw,14px); font-size:clamp(0.68rem,0.77vw,3.66rem); text-shadow:0 1px 4px rgba(0,0,0,0.35); letter-spacing:-0.01em; white-space:nowrap;">평가 12개월</span>
                     </div>
                   </div>
                 </div>
@@ -893,12 +893,12 @@ export function homePage(opts: {
                 <div>
                   <div class="flex justify-between items-center" style="margin-bottom:clamp(3px,0.21vw,6px)">
                     <span class="text-accent font-bold flex items-center" style="gap:clamp(3px,0.21vw,6px); font-size:clamp(0.68rem,0.73vw,3.5rem)"><span class="inline-block rounded-full" style="width:clamp(5px,0.36vw,10px); height:clamp(5px,0.36vw,10px); background: linear-gradient(135deg, #2563EB, #06B6D4);"></span><i class="fas fa-bolt text-yellow-500" style="font-size:clamp(7px,0.42vw,14px); margin-right:2px;"></i><span data-admin-edit="sim_label_koist">${escapeHtml(s.sim_label_koist || 'KOIST 평가 프로세스')}</span></span>
-                    <span id="ealKoistTotal" class="text-accent font-bold" style="font-size:clamp(1.02rem,1.095vw,5.25rem)">약 15개월</span>
+                    <span id="ealKoistTotal" class="text-accent font-bold" style="font-size:clamp(0.77rem,0.82vw,3.94rem); white-space:nowrap;">약 15개월</span>
                   </div>
                   <div class="relative rounded-xl overflow-hidden" style="height:clamp(32px,2.34vw,72px); background: linear-gradient(90deg, #F1F5F9, #E2E8F0);">
                     <div id="ealKoistBar" class="bar-animate eal-bar absolute left-0 top-0 h-full rounded-xl flex items-center" style="width:62.5%; background: linear-gradient(90deg, ${cfg.koistPrepColor} 0%, ${cfg.koistPrepColor} 40%, ${cfg.koistEvalColor} 40%, ${cfg.koistEvalColor} 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 2px 6px rgba(0,0,0,0.06);">
-                      <span id="ealKoistPrep" class="absolute text-white font-bold" style="left:clamp(6px,0.47vw,14px); font-size:clamp(0.9rem,1.02vw,4.875rem); text-shadow:0 1px 4px rgba(0,0,0,0.35); letter-spacing:-0.01em;">준비 6개월</span>
-                      <span id="ealKoistEval" class="absolute text-white font-bold" style="right:clamp(6px,0.47vw,14px); font-size:clamp(0.9rem,1.02vw,4.875rem); text-shadow:0 1px 4px rgba(0,0,0,0.35); letter-spacing:-0.01em;">평가 9개월</span>
+                      <span id="ealKoistPrep" class="absolute text-white font-bold" style="left:clamp(6px,0.47vw,14px); font-size:clamp(0.68rem,0.77vw,3.66rem); text-shadow:0 1px 4px rgba(0,0,0,0.35); letter-spacing:-0.01em; white-space:nowrap;">준비 6개월</span>
+                      <span id="ealKoistEval" class="absolute text-white font-bold" style="right:clamp(6px,0.47vw,14px); font-size:clamp(0.68rem,0.77vw,3.66rem); text-shadow:0 1px 4px rgba(0,0,0,0.35); letter-spacing:-0.01em; white-space:nowrap;">평가 9개월</span>
                     </div>
                   </div>
                 </div>
@@ -991,15 +991,15 @@ export function homePage(opts: {
        모든 폭/간격은 fr/clamp/vw 반응형 단위 → 데스크탑↔모바일 연동 + 8K clamp 상한 유지. */
     .unified-hero-grid {
       display: grid;
-      grid-template-columns: 62fr 38fr;   /* v42.2: 1열=원스톱 62fr(좌) / 2열=텍스트 38fr(우) */
+      grid-template-columns: 55fr 45fr;   /* v42.3-B(황금비균형): 우측 텍스트 강화 - 원스톱 55fr(좌)/텍스트 45fr(우). ①+3cm·②-2cm 중간값(+2.5cm). 우측끝 1371px 유지 */
       gap: clamp(1.5rem, 2.5vw, 2.5rem);
       align-items: stretch;      /* v42.0: 양쪽 카드 높이 동일화 → 하단 밑단 일치 */
       width: 100%;
       overflow: visible;
     }
     /* v42.2: order 로 좌우 배치 고정 (DOM 순서와 무관, hero_layout_swap 의존 없음).
-       텍스트(.unified-hero-left)=order:2 → 2열(38fr, 우측, 끝선 1371px 정렬).
-       시뮬레이터(.unified-hero-right)=order:1 → 1열(62fr, 좌측, 시작선 69px 정렬). */
+       v42.3-B: 비율 55fr 45fr — 텍스트(.unified-hero-left)=order:2 → 2열(45fr, 우측, 끝선 1371px).
+       시뮬레이터(.unified-hero-right)=order:1 → 1열(55fr, 좌측, 시작선 69px). */
     .unified-hero-left {
       display: flex;
       flex-direction: column;
@@ -1092,7 +1092,7 @@ export function homePage(opts: {
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255,255,255,0.06);
       border-radius: clamp(7px,0.88vw,14px);
-      max-width: 380px;
+      max-width: 480px;          /* v42.3-B: 연락처 카드 가로폭 ×1.26 확대 (380→480, 라벨 한줄 수용) */
     }
     @supports not (backdrop-filter: blur(1px)) {
       .hero-contact-card { background: rgba(10,15,30,0.88); }
@@ -1106,7 +1106,7 @@ export function homePage(opts: {
       display: flex;
       align-items: center;
       gap: clamp(5px,0.59vw,8px);
-      font-size: clamp(0.62rem,0.78vw,0.81rem);
+      font-size: clamp(0.68rem,0.86vw,0.89rem);   /* v42.3-B: 연락처 4종 글자 ×1.1 확대 */
       color: rgba(220,230,245,0.92);
       white-space: nowrap;
       overflow-wrap: break-word;
@@ -1121,15 +1121,15 @@ export function homePage(opts: {
       line-height: 1.55;
     }
     .hero-contact-icon {
-      width: clamp(19px,1.86vw,27px);
-      height: clamp(19px,1.86vw,27px);
+      width: clamp(21px,2.05vw,30px);     /* v42.3-B: 아이콘 ×1.1 비례 확대 */
+      height: clamp(21px,2.05vw,30px);
       border-radius: clamp(4px,0.39vw,7px);
       display: flex;
       align-items: center;
       justify-content: center;
       background: rgba(59,130,246,0.12);
       color: rgba(96,165,250,0.90);
-      font-size: clamp(7px,0.78vw,11px);
+      font-size: clamp(8px,0.86vw,12px);
       flex-shrink: 0;
     }
 
@@ -1149,10 +1149,13 @@ export function homePage(opts: {
       .hero-contact-item { font-size: clamp(0.70rem, 1.96vw, 1.02rem); }
       .hero-contact-icon { width: clamp(27px, 4.2vw, 35px); height: clamp(27px, 4.2vw, 35px); font-size: clamp(10px, 1.75vw, 14px); }
       /* Hero text tablet adapt — v36: headline removed, subtitle promoted */
+      /* v42.3-B: H1 ×0.85 축소, 배지 ×1.25 확대 (데스크탑과 비례 동기화) */
       .hero-headline { display: none !important; }
-      .hero-subtitle-promoted { font-size: clamp(1.0rem, 3.9vw, 1.62rem) !important; max-width: 100% !important; }
+      .hero-subtitle-promoted { font-size: clamp(0.85rem, 3.32vw, 1.38rem) !important; max-width: 100% !important; }
       .hero-subtitle { display: none !important; }
-      .hero-badge-pill span[data-admin-edit] { font-size: clamp(0.954rem, 2.772vw, 1.206rem) !important; }
+      .hero-badge-pill span[data-admin-edit] { font-size: clamp(1.19rem, 3.47vw, 1.51rem) !important; }
+      /* v42.3-B: 모바일에서는 라벨 한줄 강제 해제(줄바꿈 허용) — 좁은 화면 넘침 방지 */
+      .hero-contact-label { white-space: normal !important; font-size: clamp(0.84rem, 2.6vw, 1.05rem) !important; }
       /* Sim panel mobile adapt */
       .sim-panel-title { font-size: clamp(0.9rem, 3vw, 1.15rem) !important; }
       .sim-panel-subtitle { font-size: clamp(0.72rem, 2.2vw, 0.88rem) !important; }
@@ -1179,19 +1182,19 @@ export function homePage(opts: {
       .hero-subtitle { display: none !important; }
     }
 
-    /* ── 2.5K (2560px) — Hero + Slider Overrides (hero text ×0.7) ── */
+    /* ── 2.5K (2560px) — Hero + Slider Overrides — v42.3-B 비례 동기화 ── */
     @media (min-width: 2560px) {
-      .hero-badge-pill span[data-admin-edit] { font-size: 1.476rem !important; }
+      .hero-badge-pill span[data-admin-edit] { font-size: 1.845rem !important; }  /* ×1.25 */
       .hero-headline { display: none !important; }
-      .hero-subtitle-promoted { font-size: 2.1rem !important; }
+      .hero-subtitle-promoted { font-size: 1.785rem !important; }                 /* ×0.85 */
       .hero-subtitle { display: none !important; }
       .sim-panel-title { font-size: 1.67rem !important; }
       .sim-panel-subtitle { font-size: 1.17rem !important; }
-      .hero-contact-item { font-size: 1.26rem; gap: 13px; }
-      .hero-contact-icon { width: 41px; height: 41px; font-size: 17px; border-radius: 10px; }
-      .hero-contact-card { max-width: 630px; padding: 1.75rem 2.24rem; border-radius: 20px; }
+      .hero-contact-item { font-size: 1.386rem; gap: 14px; }                      /* ×1.1 */
+      .hero-contact-icon { width: 45px; height: 45px; font-size: 19px; border-radius: 11px; }  /* ×1.1 */
+      .hero-contact-card { max-width: 794px; padding: 1.75rem 2.24rem; border-radius: 20px; }  /* ×1.26 */
       .hero-contact-card p { font-size: 1.33rem !important; }
-      .hero-contact-label { font-size: 1.17rem !important; }
+      .hero-contact-label { font-size: 1.404rem !important; }                     /* ×1.2 */
     }
 
     /* ── 4K (3840px) — Hero + Slider Overrides (hero text ×0.7) ── */
