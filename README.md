@@ -1,4 +1,20 @@
-# KOIST Website v40.5
+# KOIST Website v41.0
+
+> ## 🆕 v41.0 변경 사항 (2026-06-03)
+>
+> **사용자 요청 4건**: ①테스트부서 완전 삭제 ②GNB 글자 20% 축소 ③히어로 슬라이드·원스톱 카드를 GNB 폭에 균형 배치 ④카드 아이콘 옵션②(투명 배경) + 이미지 전체 복구. **공통 제약**: 8K 화질 유지 + 윈도우 리사이즈/모바일 반응형 연동.
+>
+> **변경 내용 (8단계)**:
+> 1. **테스트부서 완전 삭제** (`migrations/0059`): `departments`·`dep_pages`에서 `test-dept` 삭제 → DB 기반(`is_active=1`)이라 GNB·카드 등 전 페이지에서 자동 소멸. 9개 부서 잔존.
+> 2. **GNB 글자 20% 축소**: 모든 `.gnb-link` clamp 값 ×0.8 (전 구간 + 2560/3840/7680px 4K/8K 브레이크포인트). 1440px=17.088px, 클리핑 없음.
+> 3. **헤더 정렬**: KOLAS/전화 cm 고정값 제거, TOP BAR·GNB를 `fluid-container`로 통일. `.gnb-nav-inner`의 `width:100%` 제거 → KOLAS·KOIST소개 좌측 기준선 **완전 일치**(69px @1440).
+> 4. **히어로 GNB폭 정렬**: 히어로 cm 오프셋 전면 제거(`+7cm`/`+2.5cm`/`-1.5cm`/CTA `1.2cm`/contact-card `+1cm` → clamp·%·fr 반응형). `grid-template-columns: 55fr 45fr`. 히어로 그리드 좌우 끝(69~1371)이 GNB 전체 폭과 일치.
+> 5. **이미지 전체 복구** (`migrations/0060`): 깨진 `/api/images/legacy/sh_page/img/*`(23) + `/api/images/legacy-icons/*`(11) → `/static/images/legacy/*` (kolas는 별도 경로). 남은 깨진 URL 0개, 전부 HTTP 200. (모든 원본 파일 존재 → AI 재생성 불필요)
+> 6. **카드 아이콘 옵션②**: 9개 `dept-icon`(1024² 8K급)의 흰 배경을 flood-fill로 투명화(가장자리 연결 흰색만 제거, 내부 디테일 보존) + 통일된 라이트톤 박스(`.card-icon-box`)로 일관화. `object-cover`→`object-contain`.
+> 7. **하단 섹션 정렬선 통일**: services/공지사항/평가현황/CTA가 모두 `fluid-container` 사용 → 히어로와 동일한 좌우 기준선(L=32, R=1408 @1440 / L=16,R=374 @390) 자동 통일. (STEP4의 결과로 자동 달성)
+> 8. **반응형·8K 검증**: 데스크탑(1280/1440/1920) + 모바일(390) Playwright 측정·스크린샷 검증 완료.
+>
+> ---
 
 > ## 🆕 v40.5 변경 사항 (2026-06-02 배포 완료, deploy `6d9285d6`)
 >
