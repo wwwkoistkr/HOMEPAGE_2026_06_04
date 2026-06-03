@@ -1092,7 +1092,7 @@ export function homePage(opts: {
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255,255,255,0.06);
       border-radius: clamp(7px,0.88vw,14px);
-      max-width: 480px;          /* v42.3-B: 연락처 카드 가로폭 ×1.26 확대 (380→480, 라벨 한줄 수용) */
+      width: 100%;               /* v42.3-C(옵션A): max-width 제한 제거 → 부모(텍스트영역) 폭 100% 채움. 카드 우측끝을 GNB '고객지원'(1371px@1440)에 정렬 → 우측 빈공간 제거 */
     }
     @supports not (backdrop-filter: blur(1px)) {
       .hero-contact-card { background: rgba(10,15,30,0.88); }
@@ -1192,7 +1192,7 @@ export function homePage(opts: {
       .sim-panel-subtitle { font-size: 1.17rem !important; }
       .hero-contact-item { font-size: 1.386rem; gap: 14px; }                      /* ×1.1 */
       .hero-contact-icon { width: 45px; height: 45px; font-size: 19px; border-radius: 11px; }  /* ×1.1 */
-      .hero-contact-card { max-width: 794px; padding: 1.75rem 2.24rem; border-radius: 20px; }  /* ×1.26 */
+      .hero-contact-card { width: 100%; max-width: none; padding: 1.75rem 2.24rem; border-radius: 20px; }  /* v42.3-C: 부모 폭 100% (우측 정렬) */
       .hero-contact-card p { font-size: 1.33rem !important; }
       .hero-contact-label { font-size: 1.404rem !important; }                     /* ×1.2 */
     }
