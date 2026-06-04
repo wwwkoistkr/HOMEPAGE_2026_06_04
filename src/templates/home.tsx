@@ -897,8 +897,8 @@ export function homePage(opts: {
                   </div>
                   <div class="relative rounded-xl overflow-hidden" style="height:clamp(32px,2.34vw,72px); background: linear-gradient(90deg, #F1F5F9, #E2E8F0);">
                     <div id="ealKoistBar" class="bar-animate eal-bar absolute left-0 top-0 h-full rounded-xl flex items-center" style="width:62.5%; background: linear-gradient(90deg, ${cfg.koistPrepColor} 0%, ${cfg.koistPrepColor} 40%, ${cfg.koistEvalColor} 40%, ${cfg.koistEvalColor} 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 2px 6px rgba(0,0,0,0.06);">
-                      <span id="ealKoistPrep" class="absolute font-extrabold" style="left:clamp(6px,0.47vw,14px); font-size:clamp(0.95rem,0.77vw,3.66rem); color:#FBBF24; text-shadow:0 1px 5px rgba(0,0,0,0.75); letter-spacing:-0.01em; white-space:nowrap;">준비 6개월</span>
-                      <span id="ealKoistEval" class="absolute font-extrabold" style="right:clamp(6px,0.47vw,14px); font-size:clamp(0.95rem,0.77vw,3.66rem); color:#FBBF24; text-shadow:0 1px 5px rgba(0,0,0,0.75); letter-spacing:-0.01em; white-space:nowrap;">평가 9개월</span>
+                      <span id="ealKoistPrep" class="absolute font-extrabold" style="left:clamp(6px,0.47vw,14px); font-size:clamp(0.95rem,0.77vw,3.66rem); color:#0F172A; text-shadow:0 1px 4px rgba(255,255,255,0.85); letter-spacing:-0.01em; white-space:nowrap;">준비 6개월</span>
+                      <span id="ealKoistEval" class="absolute font-extrabold" style="right:clamp(6px,0.47vw,14px); font-size:clamp(0.95rem,0.77vw,3.66rem); color:#0F172A; text-shadow:0 1px 4px rgba(255,255,255,0.85); letter-spacing:-0.01em; white-space:nowrap;">평가 9개월</span>
                     </div>
                   </div>
                 </div>
