@@ -819,13 +819,13 @@ export function homePage(opts: {
                   <i class="fas fa-chart-bar text-blue-400" style="font-size:clamp(11px,0.73vw,22px)"></i>
                 </div>
                 <div style="min-width:0;">
-                  <p class="text-white font-bold truncate sim-panel-title" data-admin-edit="unified_panel_title" style="font-size:clamp(1.18rem,1.04vw,5rem); line-height:1.3; letter-spacing:-0.01em;">${s.unified_panel_title ? sanitizeHtml(s.unified_panel_title) : 'KOIST와 함께라면 평가기간을 <span class="text-cyan-300">대폭 단축</span>합니다'}</p>
-                  <p class="truncate sim-panel-subtitle" data-admin-edit="unified_panel_subtitle" style="font-size:clamp(0.86rem,0.73vw,3.5rem); margin-top:3px; color:#A5D8F3;">${s.unified_panel_subtitle ? sanitizeHtml(s.unified_panel_subtitle) : '사전준비 수준에 따라 실시간으로 기간을 산출합니다'}</p>
+                  <p class="font-bold truncate sim-panel-title" data-admin-edit="unified_panel_title" style="font-size:clamp(1.18rem,1.04vw,5rem); line-height:1.3; letter-spacing:-0.01em; color:#F59E0B;">${s.unified_panel_title ? sanitizeHtml(s.unified_panel_title) : 'KOIST와 함께라면 평가기간을 <span style="color:#FBBF24;">대폭 단축</span>합니다'}</p>
+                  <p class="truncate sim-panel-subtitle" data-admin-edit="unified_panel_subtitle" style="font-size:clamp(0.86rem,0.73vw,3.5rem); margin-top:3px; color:#F59E0B;">${s.unified_panel_subtitle ? sanitizeHtml(s.unified_panel_subtitle) : '사전준비 수준에 따라 실시간으로 기간을 산출합니다'}</p>
                 </div>
               </div>
               <div class="hidden sm:flex items-center rounded-full shrink-0" style="gap:clamp(3px,0.26vw,8px); padding:clamp(4px,0.31vw,10px) clamp(10px,0.73vw,24px); background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.22);">
-                <span class="text-white font-black" style="font-size:clamp(1.05rem,0.78vw,3.5rem)" id="headerReductionPct" data-admin-edit="unified_reduction_default">${defaultReduction}%</span>
-                <span class="text-blue-200 font-semibold" style="font-size:clamp(0.78rem,0.52vw,2.2rem)" data-admin-edit="unified_reduction_label">${escapeHtml(s.unified_reduction_label || '평균 단축')}</span>
+                <span class="font-black" style="font-size:clamp(1.05rem,0.78vw,3.5rem); color:#F59E0B;" id="headerReductionPct" data-admin-edit="unified_reduction_default">${defaultReduction}%</span>
+                <span class="font-semibold" style="font-size:clamp(0.78rem,0.52vw,2.2rem); color:#F59E0B;" data-admin-edit="unified_reduction_label">${escapeHtml(s.unified_reduction_label || '평균 단축')}</span>
               </div>
             </div>
 
@@ -845,10 +845,10 @@ export function homePage(opts: {
                 <div class="flex items-center" style="gap:clamp(0.4rem,0.47vw,0.96rem)">
                   <div class="flex items-center shrink-0" style="gap:clamp(3px,0.26vw,8px)">
                     <i class="fas fa-clipboard-check text-emerald-500" style="font-size:clamp(14px,0.63vw,20px)"></i>
-                    <span class="font-bold" data-admin-edit="sim_label_prep" style="font-size:clamp(0.98rem,0.73vw,3.5rem); color:#1E293B;">${escapeHtml(s.sim_label_prep || '사전준비')}</span>
+                    <span class="font-bold" data-admin-edit="sim_label_prep" style="font-size:clamp(0.98rem,0.73vw,3.5rem); color:#10B981;">${escapeHtml(s.sim_label_prep || '사전준비')}</span>
                   </div>
                   <div class="flex-1 flex items-center" style="gap:clamp(0.2rem,0.31vw,0.64rem)">
-                    <span class="text-slate-500 shrink-0" style="font-size:clamp(12px,0.52vw,16px); font-weight:700;">1</span>
+                    <span class="shrink-0" style="font-size:clamp(12px,0.52vw,16px); font-weight:700; color:#F59E0B;">1</span>
                     <div class="flex-1 relative" style="height:clamp(27px,1.87vw,54px);">
                       <div class="absolute left-0 right-0" style="top:50%; transform:translateY(-50%); height:clamp(6px,0.42vw,12px); border-radius:clamp(3px,0.21vw,6px); background: linear-gradient(90deg, ${cfg.trackColor1} 0%, ${cfg.trackColor2} 25%, ${cfg.trackColor3} 60%, ${cfg.trackColor4} 100%); opacity:${cfg.trackOpacity};"></div>
                       <div id="prepFill" class="absolute left-0" style="top:50%; transform:translateY(-50%); height:clamp(6px,0.42vw,12px); border-radius:clamp(3px,0.21vw,6px); width:50%; background: linear-gradient(90deg, ${cfg.trackColor1} 0%, ${cfg.trackColor2} 30%, ${cfg.trackColor3} 70%, ${cfg.trackColor4} 100%); transition: width 0.12s ease; box-shadow:0 2px 6px rgba(0,0,0,0.08);"></div>
@@ -857,7 +857,7 @@ export function homePage(opts: {
                         style="width:100%; position:absolute; top:50%; transform:translateY(-50%); cursor:pointer; -webkit-appearance:none; appearance:none; height:clamp(6px,0.42vw,12px); border-radius:clamp(3px,0.21vw,6px); background: transparent; outline:none; z-index:2;"
                         oninput="onPrepChange(this.value)">
                     </div>
-                    <span class="text-slate-500 shrink-0" style="font-size:clamp(12px,0.52vw,16px); font-weight:700;">100</span>
+                    <span class="shrink-0" style="font-size:clamp(12px,0.52vw,16px); font-weight:700; color:#F59E0B;">100</span>
                     <div id="prepBadge" class="shrink-0 flex items-center rounded-full font-bold transition-all" style="gap:2px; padding:clamp(3px,0.21vw,6px) clamp(8px,0.52vw,18px); min-width:clamp(48px,3.13vw,96px); justify-content:center; background: rgba(16,185,129,0.10); border: clamp(1px,0.05vw,3px) solid rgba(16,185,129,0.20); color: #10B981; font-size:clamp(0.92rem,0.63vw,3rem);">
                       <span id="prepValueText">50</span><span style="font-size:0.7em; opacity:0.7">%</span>
                     </div>
@@ -878,13 +878,13 @@ export function homePage(opts: {
                 <!-- CCRA bar -->
                 <div>
                   <div class="flex justify-between items-center" style="margin-bottom:clamp(3px,0.21vw,6px)">
-                    <span class="font-bold flex items-center" style="gap:clamp(3px,0.21vw,6px); font-size:clamp(0.95rem,0.73vw,3.5rem); color:#1E293B;"><span class="inline-block rounded-full" style="width:clamp(7px,0.36vw,10px); height:clamp(7px,0.36vw,10px); background: linear-gradient(135deg, #94A3B8, #64748B);"></span><span data-admin-edit="sim_label_traditional">${escapeHtml(s.sim_label_traditional || 'CCRA평가일수')}</span></span>
-                    <span id="ealGeneralTotal" class="font-extrabold" style="font-size:clamp(1.05rem,0.82vw,3.94rem); white-space:nowrap; color:#334155;">약 24개월</span>
+                    <span class="font-bold flex items-center" style="gap:clamp(3px,0.21vw,6px); font-size:clamp(0.95rem,0.73vw,3.5rem); color:#10B981;"><span class="inline-block rounded-full" style="width:clamp(7px,0.36vw,10px); height:clamp(7px,0.36vw,10px); background: linear-gradient(135deg, #94A3B8, #64748B);"></span><span data-admin-edit="sim_label_traditional">${escapeHtml(s.sim_label_traditional || 'CCRA평가일수')}</span></span>
+                    <span id="ealGeneralTotal" class="font-extrabold" style="font-size:clamp(1.05rem,0.82vw,3.94rem); white-space:nowrap; color:#10B981;">약 24개월</span>
                   </div>
                   <div class="relative rounded-xl overflow-hidden" style="height:clamp(32px,2.34vw,72px); background: linear-gradient(90deg, #F1F5F9, #E2E8F0);">
                     <div id="ealGeneralBar" class="bar-animate eal-bar absolute left-0 top-0 h-full rounded-xl flex items-center" style="width:100%; background: linear-gradient(90deg, ${cfg.genPrepColor} 0%, ${cfg.genPrepColor} 50%, ${cfg.genEvalColor} 50%, ${cfg.genEvalColor} 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 2px 6px rgba(0,0,0,0.06);">
-                      <span id="ealGeneralPrep" class="absolute font-extrabold" style="left:clamp(6px,0.47vw,14px); font-size:clamp(0.95rem,0.77vw,3.66rem); color:#FFFFFF; text-shadow:0 1px 5px rgba(0,0,0,0.55); letter-spacing:-0.01em; white-space:nowrap;">준비 12개월</span>
-                      <span id="ealGeneralEval" class="absolute font-extrabold" style="right:clamp(6px,0.47vw,14px); font-size:clamp(0.95rem,0.77vw,3.66rem); color:#0F172A; text-shadow:0 1px 3px rgba(255,255,255,0.55); letter-spacing:-0.01em; white-space:nowrap;">평가 12개월</span>
+                      <span id="ealGeneralPrep" class="absolute font-extrabold" style="left:clamp(6px,0.47vw,14px); font-size:clamp(0.95rem,0.77vw,3.66rem); color:#F59E0B; text-shadow:0 1px 5px rgba(0,0,0,0.55); letter-spacing:-0.01em; white-space:nowrap;">준비 12개월</span>
+                      <span id="ealGeneralEval" class="absolute font-extrabold" style="right:clamp(6px,0.47vw,14px); font-size:clamp(0.95rem,0.77vw,3.66rem); color:#10B981; text-shadow:0 1px 4px rgba(255,255,255,0.85); letter-spacing:-0.01em; white-space:nowrap;">평가 12개월</span>
                     </div>
                   </div>
                 </div>
@@ -897,8 +897,8 @@ export function homePage(opts: {
                   </div>
                   <div class="relative rounded-xl overflow-hidden" style="height:clamp(32px,2.34vw,72px); background: linear-gradient(90deg, #F1F5F9, #E2E8F0);">
                     <div id="ealKoistBar" class="bar-animate eal-bar absolute left-0 top-0 h-full rounded-xl flex items-center" style="width:62.5%; background: linear-gradient(90deg, ${cfg.koistPrepColor} 0%, ${cfg.koistPrepColor} 40%, ${cfg.koistEvalColor} 40%, ${cfg.koistEvalColor} 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 2px 6px rgba(0,0,0,0.06);">
-                      <span id="ealKoistPrep" class="absolute font-extrabold" style="left:clamp(6px,0.47vw,14px); font-size:clamp(0.95rem,0.77vw,3.66rem); color:#FFFFFF; text-shadow:0 1px 5px rgba(0,0,0,0.55); letter-spacing:-0.01em; white-space:nowrap;">준비 6개월</span>
-                      <span id="ealKoistEval" class="absolute font-extrabold" style="right:clamp(6px,0.47vw,14px); font-size:clamp(0.95rem,0.77vw,3.66rem); color:#FFFFFF; text-shadow:0 1px 5px rgba(0,0,0,0.55); letter-spacing:-0.01em; white-space:nowrap;">평가 9개월</span>
+                      <span id="ealKoistPrep" class="absolute font-extrabold" style="left:clamp(6px,0.47vw,14px); font-size:clamp(0.95rem,0.77vw,3.66rem); color:#F59E0B; text-shadow:0 1px 5px rgba(0,0,0,0.55); letter-spacing:-0.01em; white-space:nowrap;">준비 6개월</span>
+                      <span id="ealKoistEval" class="absolute font-extrabold" style="right:clamp(6px,0.47vw,14px); font-size:clamp(0.95rem,0.77vw,3.66rem); color:#F59E0B; text-shadow:0 1px 5px rgba(0,0,0,0.55); letter-spacing:-0.01em; white-space:nowrap;">평가 9개월</span>
                     </div>
                   </div>
                 </div>
@@ -910,15 +910,15 @@ export function homePage(opts: {
                       <span class="font-black" style="color:${cfg.badgeTextColor}; font-size:clamp(1.05rem,0.73vw,3.5rem); text-rendering:geometricPrecision;">${defaultReduction}%</span>
                     </div>
                     <div>
-                      <p id="ealReductionText" class="text-primary font-bold" style="font-size:clamp(0.98rem,0.68vw,3.25rem)">평가기간 약 ${defaultReduction}% 단축</p>
-                      <p id="ealSavingText" class="font-semibold" style="font-size:clamp(0.8rem,0.52vw,2.5rem); margin-top:1px; color:#334155;">약 9개월 절감 &middot; 원스톱 서비스</p>
+                      <p id="ealReductionText" class="font-bold" style="font-size:clamp(0.98rem,0.68vw,3.25rem); color:#10B981;">평가기간 약 ${defaultReduction}% 단축</p>
+                      <p id="ealSavingText" class="font-semibold" style="font-size:clamp(0.8rem,0.52vw,2.5rem); margin-top:1px; color:#10B981;">약 9개월 절감 &middot; 원스톱 서비스</p>
                     </div>
                   </div>
                   <div class="flex items-center flex-wrap" style="gap:clamp(6px,0.36vw,12px)">
                     <span id="simKoistPrepResult" class="font-medium" style="font-size:clamp(0.85rem,0.57vw,2.75rem); color:${cfg.koistPrepColor}"><i class="fas fa-file-pen" style="font-size:clamp(11px,0.42vw,14px); margin-right:3px;"></i>준비 <strong>6</strong>개월</span>
                     <span id="simKoistEvalResult" class="font-medium" style="font-size:clamp(0.85rem,0.57vw,2.75rem); color:${cfg.koistEvalColor}"><i class="fas fa-magnifying-glass" style="font-size:clamp(11px,0.42vw,14px); margin-right:3px;"></i>평가 <strong>9</strong>개월</span>
                     <span class="text-slate-300">|</span>
-                    <span class="font-semibold" style="font-size:clamp(0.85rem,0.57vw,2.75rem); color:#334155"><strong>${totalEvals}</strong>건 평가실적</span>
+                    <span class="font-semibold" style="font-size:clamp(0.85rem,0.57vw,2.75rem); color:#10B981"><strong>${totalEvals}</strong>건 평가실적</span>
                   </div>
                 </div>
               </div>
@@ -1063,9 +1063,9 @@ export function homePage(opts: {
     }
 
     /* EAL Tab active state */
-    .eal-tab { color: #94A3B8; cursor: pointer; border: none; background: transparent; }
-    .eal-tab.active { color: #fff; background: linear-gradient(135deg, #2563EB, #0891B2); box-shadow: 0 2px 8px rgba(37,99,235,0.25); }
-    .eal-tab:hover:not(.active) { color: #475569; background: rgba(0,0,0,0.03); }
+    .eal-tab { color: #F59E0B; cursor: pointer; border: none; background: transparent; }
+    .eal-tab.active { color: #F59E0B; background: linear-gradient(135deg, #2563EB, #0891B2); box-shadow: 0 2px 8px rgba(37,99,235,0.25); }
+    .eal-tab:hover:not(.active) { color: #D97706; background: rgba(0,0,0,0.03); }
     .eal-bar span { text-rendering: geometricPrecision; }
 
     /* Slider thumb */
