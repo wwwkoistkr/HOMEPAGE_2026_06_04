@@ -10,7 +10,7 @@ INSERT OR IGNORE INTO site_settings (key, value, category, description) VALUES
 ('phone', '02-586-1230', 'contact', '대표 전화번호'),
 ('phone_display', '02-586-1230', 'contact', '화면 표시용 전화번호'),
 ('fax', '02-586-1238', 'contact', '팩스 번호'),
-('email', 'koist@koist.ai.kr', 'contact', '대표 이메일'),
+('email', 'koist@koist.kr', 'contact', '대표 이메일'),
 ('address', '서울특별시 서초구 효령로 336 윤일빌딩 4층 한국정보보안기술원', 'contact', '주소'),
 ('contact_person', '담당자', 'contact', '담당자명'),
 ('logo_url', '/static/images/logo-horizontal.png', 'theme', '로고 이미지 경로'),

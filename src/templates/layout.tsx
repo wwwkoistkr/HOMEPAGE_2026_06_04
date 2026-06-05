@@ -26,7 +26,7 @@ export function layout(opts: {
   const phoneDisplay = escapeHtml(phoneRaw);
   const phoneTelAttr = escapeAttr(phoneRaw.replace(/[^0-9+\-]/g, ''));
   const faxDisplay = escapeHtml(s.fax || '02-586-1238');
-  const emailRaw = s.email || 'koist@koist.ai.kr';
+  const emailRaw = s.email || 'koist@koist.kr';
   const emailDisplay = escapeHtml(emailRaw);
   const emailMailtoAttr = escapeAttr(emailRaw.replace(/[<>"'`\s]/g, ''));
 
