@@ -173,7 +173,7 @@ export function homeContentPage() {
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">이메일</label>
-              <input type="text" data-key="email" class="setting-input w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="koist@koist.kr">
+              <input type="text" data-key="email" class="setting-input w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="koist@koist.ai.kr">
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">주소</label>

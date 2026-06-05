@@ -799,7 +799,7 @@ export function homePage(opts: {
               </div>
               <div class="hero-contact-item">
                 <div class="hero-contact-icon"><i class="fas fa-envelope"></i></div>
-                <span data-admin-edit="email">${escapeHtml(s.email || 'koist@koist.kr')}</span>
+                <span data-admin-edit="email">${escapeHtml(s.email || 'koist@koist.ai.kr')}</span>
               </div>
               <div class="hero-contact-item">
                 <div class="hero-contact-icon"><i class="fas fa-location-dot"></i></div>
