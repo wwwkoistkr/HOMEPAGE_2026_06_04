@@ -53,15 +53,15 @@ function pageHeader(opts: {
           </div>
         </div>
         ${opts.contactInfo && (opts.contactInfo.dept || opts.contactInfo.name || opts.contactInfo.phone) ? `
-        <div class="hidden sm:flex items-center shrink-0 rounded-xl" style="gap:clamp(14px,1.8vw,24px); padding:clamp(12px,1.2vw,20px) clamp(20px,2.4vw,36px); background:rgba(255,255,255,0.07); backdrop-filter:blur(12px); border:1.5px solid rgba(255,255,255,0.12); box-shadow:0 4px 24px rgba(0,0,0,0.15); -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;">
-          <div class="rounded-lg flex items-center justify-center shrink-0" style="width:clamp(48px,5vw,60px);height:clamp(48px,5vw,60px);background:linear-gradient(135deg,rgba(59,130,246,0.25),rgba(6,182,212,0.20));">
-            <i class="fas fa-headset text-blue-400" style="font-size:clamp(22px,2.4vw,28px)"></i>
+        <div class="hidden sm:flex items-center shrink-0 rounded-xl" style="gap:clamp(14px,1.8vw,24px); padding:clamp(12px,1.2vw,20px) clamp(20px,2.4vw,36px); background:#FFFFFF; border:1.5px solid rgba(0,0,0,0.06); box-shadow:0 6px 24px rgba(0,0,0,0.28); -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;">
+          <div class="rounded-lg flex items-center justify-center shrink-0" style="width:clamp(48px,5vw,60px);height:clamp(48px,5vw,60px);background:linear-gradient(135deg,rgba(249,115,22,0.18),rgba(234,88,12,0.12));">
+            <i class="fas fa-headset" style="color:#EA580C;font-size:clamp(22px,2.4vw,28px)"></i>
           </div>
           <div style="line-height:1.5">
-            <div class="text-slate-200 font-bold" style="white-space:nowrap; font-size:clamp(0.85rem,0.9vw,1.05rem); letter-spacing:0.02em;">
-              ${opts.contactInfo.dept ? `<span>${opts.contactInfo.dept}</span>` : ''}${opts.contactInfo.dept && opts.contactInfo.name ? '<span class="text-slate-500 mx-2">|</span>' : ''}${opts.contactInfo.name ? `<span>${opts.contactInfo.name}</span>` : ''}
+            <div class="font-extrabold" style="color:#000000; white-space:nowrap; font-size:clamp(0.92rem,0.95vw,1.1rem); letter-spacing:0.01em;">
+              ${opts.contactInfo.dept ? `<span>${opts.contactInfo.dept}</span>` : ''}${opts.contactInfo.dept && opts.contactInfo.name ? `<span class="mx-2" style="color:rgba(0,0,0,0.35)">|</span>` : ''}${opts.contactInfo.name ? `<span>${opts.contactInfo.name}</span>` : ''}
             </div>
-            ${opts.contactInfo.phone ? `<a href="tel:${opts.contactInfo.phone}" class="text-blue-400 font-extrabold hover:text-blue-300 transition-colors" style="white-space:nowrap; font-size:clamp(1.05rem,1.2vw,1.35rem); letter-spacing:0.03em;"><i class="fas fa-phone" style="font-size:clamp(13px,1.1vw,16px);margin-right:6px"></i>${opts.contactInfo.phone}</a>` : ''}
+            ${opts.contactInfo.phone ? `<a href="tel:${opts.contactInfo.phone}" class="hover:opacity-80 transition-opacity" style="display:inline-flex;align-items:center;color:#EA580C;font-weight:900;white-space:nowrap; font-size:clamp(1.1rem,1.25vw,1.4rem); letter-spacing:0.03em;"><i class="fas fa-phone" style="font-size:clamp(13px,1.1vw,16px);margin-right:6px"></i>${opts.contactInfo.phone}</a>` : ''}
           </div>
         </div>` : ''}
       </div>
